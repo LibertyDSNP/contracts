@@ -22,7 +22,9 @@
     "url": "https://github.com/Liberty30/contracts/issues"
   },
   "homepage": "https://github.com/Liberty30/contracts#readme",
-  "dependencies": {},
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.4.1"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
