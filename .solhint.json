@@ -6,7 +6,6 @@
       "avoid-suicide": "error",
       "avoid-sha3": "error",
       "compiler-version": "off",
-      "ignore-constructors": true,
       "mark-callable-contracts": "off",
       "reason-string": ["error", { "maxLength": 64 }]
     },
