@@ -1,4 +1,4 @@
-pragma solidity >=0.7.4 <=0.9.0;
+pragma solidity >=0.7.4 <0.9.0;
 
 /// SPDX-License-Identifier: UNLICENSED
 import "hardhat/console.sol";
@@ -18,9 +18,7 @@ contract Migrations {
     }
 
     function setCompleted(uint256 completed) public restricted {
-        console.log("HERE1");
         lastCompletedMigration = completed;
         emit DSNPMigration(owner);
-        console.log("HERE2");
     }
 }

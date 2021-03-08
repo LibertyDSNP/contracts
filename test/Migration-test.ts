@@ -8,6 +8,6 @@ describe("Migrate", function () {
     const contract = await Contract.deploy();
     await contract.deployed();
 
-    await expect(contract.setCompleted())
+    expect(await contract.setCompleted(123444)).to.emit(contract, "DSNPMigration")
   });
 });
