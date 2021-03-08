@@ -24,7 +24,6 @@
     "url": "https://github.com/Liberty30/contracts/issues"
   },
   "homepage": "https://github.com/Liberty30/contracts#readme",
-  "dependencies": {},
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
