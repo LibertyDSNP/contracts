@@ -20,9 +20,12 @@ const config: HardhatUserConfig = {
     hardhat: {
     },
     testnet: {
+      gas: "auto",
+      gasPrice: "auto",
+      gasMultiplier: 1,
       url: "http://127.0.0.1:8545",
       chainId: 1776,
-      accounts: ["1b4462199e0bc852d86f1cf424ea8cb877f269e0ea57e0ab59362b64d0a3b3a0"]
+      accounts: [`${process.env.TESTNETWORK_PRIVATE_KEY}`]
     },
   },
 };
