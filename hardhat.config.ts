@@ -11,7 +11,6 @@ task("accounts", "Prints accounts", async (_, { web3 }) => {
 });
 
 
-
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
@@ -23,7 +22,7 @@ const config: HardhatUserConfig = {
     testnet: {
       url: "http://127.0.0.1:8545",
       chainId: 1776,
-      accounts: [`0x${process.env.TESTNETWORK_PRIVATE_KEY}`]
+      accounts: ["1b4462199e0bc852d86f1cf424ea8cb877f269e0ea57e0ab59362b64d0a3b3a0"]
     },
   },
 };

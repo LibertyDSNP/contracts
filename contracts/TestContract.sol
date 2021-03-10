@@ -3,8 +3,7 @@ pragma solidity ^0.7.3;
 
 import "hardhat/console.sol";
 
-
-contract Greeter {
+contract TestContract {
     string greeting;
 
     constructor(string memory _greeting) {
