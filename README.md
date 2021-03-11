@@ -9,6 +9,7 @@ Basic Command List:
 - `npm run test` - runs mocha tests
 - `npm run lint` - to run the linter
 - `npm run format` - to trigger formatting 
+- `npm run deploy:testnet` - deploys our `deploy.ts` script to our POA testnet defined in the `hardhat.config.ts`
 
 Environment Variables
 1. create a `.env` file - 
