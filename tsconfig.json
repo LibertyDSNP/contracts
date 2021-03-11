@@ -10,10 +10,10 @@
     "removeComments": true,
     "resolveJsonModule": true,
     "sourceMap": true,
-    "strict": true,
+    "strict": true
   },
   "include": ["./scripts", "./test"],
   "files": [
     "./hardhat.config.ts"
-  ],
+  ]
 }
