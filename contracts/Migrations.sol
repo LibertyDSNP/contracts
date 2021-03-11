@@ -7,7 +7,7 @@ contract Migrations {
     address public owner;
     uint256 public lastCompletedMigration;
 
-    event DSNPMigration(address contractAddr);
+    event DSNPMigration(address contractAddr, string abi);
 
     constructor() {
         owner = msg.sender;
@@ -19,6 +19,11 @@ contract Migrations {
 
     function setCompleted(uint256 completed) public restricted {
         lastCompletedMigration = completed;
-        emit DSNPMigration(owner);
+    }
+
+    function upgrade(address new_address, string memory abijson) public restricted {
+        Migrations upgraded = Migrations(new_address);
+        upgraded.setCompleted(lastCompletedMigration);
+        emit DSNPMigration(new_address, abijson);
     }
 }

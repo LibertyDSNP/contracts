@@ -1,13 +1,23 @@
 import { ethers } from "hardhat";
 import chai from "chai";
+import * as fs from "fs";
 const { expect } = chai;
 
 describe("Migrate", function () {
-  it("emits a migration log event", async function () {
+  it("upgrade emits a migration log event", async function () {
     const Contract = await ethers.getContractFactory("Migrations");
     const contract = await Contract.deploy();
     await contract.deployed();
 
-    expect(await contract.setCompleted(123444)).to.emit(contract, "DSNPMigration")
+    let parsedabi:any = {}
+    const abiPath = "./artifacts/contracts/Greeter.sol/Greeter.json"
+    fs.readFile(abiPath,{}, (err, buf) => {
+      expect(err).to.eq(null);
+      expect(buf).not.to.eq(undefined)
+      parsedabi = JSON.parse(buf.toString()).abi
+    });
+    expect(parsedabi).not.to.eq({})
+
+    expect(await contract.upgrade(contract.address, parsedabi)).to.emit(contract, "DSNPMigration")
   });
 });
