@@ -12,8 +12,15 @@ Basic Command List:
 - `npm run deploy:testnet` - deploys our `deploy.ts` script to our POA testnet defined in the `hardhat.config.ts`
 
 Environment Variables
-1. create a `.env` file - 
-`TESTNET_ACCOUNT_PRIVATE_KEY` - private key for the account which  hardhat uses. Set it to an account
+1. create a `.env` file and set values for all variables in `.env.sample`
+
+|Env Variable Name      | Description | 
+| ------------- | -----------  | 
+| LOCAL_NETWORK_PRIVATE_KEY         | private key for an account we have on our local network that has eth.         | 
+| TESTNET_ACCOUNT_PRIVATE_KEY       | private key for an account we have on our test network that has eth.         |
+| TESTNET_CHAIN_URL     | Url to connect to tesnet        |     
+   
+`TESTNET_x_PRIVATE_KEY` - private key for the account which  hardhat uses. Set it to an account
 we have on the POA testnet that has eth in it. 
 
 ## Accounts
