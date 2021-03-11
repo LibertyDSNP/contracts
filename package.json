@@ -8,7 +8,7 @@
     "clean": "npx hardhat clean",
     "compile": "npx hardhat compile",
     "console": "npx hardhat console",
-    "test": "npx hardhat test", 
+    "test": "npx hardhat test",
     "deploy:testnet": "npx hardhat run ./scripts/deploy.ts --network testnet --verbose",
     "format": "prettier --write \"**/*.{sol,js,ts}\"",
     "lint": "solhint \"contracts/**/*.sol\" && prettier -c \"**/*.{sol,js,ts}\""

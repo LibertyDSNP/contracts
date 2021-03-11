@@ -1,4 +1,7 @@
 # Social Identity Contracts
+
+This repo will allow us to create and deploy contracts to our POA network. We are using [hardhat](https://hardhat.org/) to 
+compile and deploy the contracts
  
 ## Key Commands and Tasks
 Basic Command List:
@@ -19,10 +22,7 @@ Environment Variables
 | LOCAL_NETWORK_PRIVATE_KEY         | private key for an account we have on our local network that has eth.         | 
 | TESTNET_ACCOUNT_PRIVATE_KEY       | private key for an account we have on our test network that has eth.         |
 | TESTNET_CHAIN_URL     | Url to connect to tesnet        |     
-   
-`TESTNET_x_PRIVATE_KEY` - private key for the account which  hardhat uses. Set it to an account
-we have on the POA testnet that has eth in it. 
-
+  
 ## Accounts
 
 ## Deployments
