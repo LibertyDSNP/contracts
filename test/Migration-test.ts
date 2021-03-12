@@ -4,6 +4,9 @@ import * as fs from "fs";
 const { expect } = chai;
 
 describe("Migrate", function () {
+  const contractName = "Greeter"
+  const lastCompleted = 1234;
+
   it("upgrade emits a migration log event", async function () {
     const Contract = await ethers.getContractFactory("Migrations");
     const contract = await Contract.deploy();
@@ -17,7 +20,13 @@ describe("Migrate", function () {
       parsedabi = JSON.parse(buf.toString()).abi
     });
     expect(parsedabi).not.to.eq({})
+    const abiJSONStr = JSON.stringify(parsedabi)
+    await contract.setCompleted(lastCompleted);
 
-    expect(await contract.upgrade(contract.address, parsedabi)).to.emit(contract, "DSNPMigration")
+
+    expect(await contract.upgraded(contract.address, contractName, abiJSONStr))
+      .to
+      .emit(contract, "DSNPMigration")
+      .withArgs(lastCompleted, contract.address, contractName, abiJSONStr)
   });
 });
