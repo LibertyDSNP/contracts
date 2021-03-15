@@ -10,6 +10,7 @@
     "console": "npx hardhat console",
     "test": "npx hardhat test",
     "deploy:testnet": "npx hardhat run ./scripts/deploy.ts --network testnet --verbose",
+    "deploy:localhost": "npx hardhat run ./scripts/deploy.ts --network localhost --verbose",
     "format": "prettier --write \"**/*.{sol,js,ts}\"",
     "lint": "solhint \"contracts/**/*.sol\" && prettier -c \"**/*.{sol,js,ts}\""
   },

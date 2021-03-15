@@ -17,16 +17,10 @@ async function main() {
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-
-  const greeter = await Greeter.deploy("test");
-
-  const contract = await greeter.deployed();
-
-  console.log("Greeter deployed to:", greeter.address);
-  const message = await contract.greet()
-  console.log("greet: ", message);
-
+  const Announcer = await ethers.getContractFactory("Announcer");
+  const announcer = await Announcer.deploy();
+  const contract = await announcer.deployed();
+  console.log("announcer deployed to:", contract.address);
 }
 
 main()
