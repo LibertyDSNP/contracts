@@ -13,7 +13,7 @@ describe("Migrate", function () {
     await contract.deployed();
 
     let parsedabi:any = {}
-    const abiPath = "./artifacts/contracts/Greeter.sol/Greeter.json"
+    const abiPath = "./artifacts/contracts/Migrations.sol/Migrations.json"
     fs.readFile(abiPath,{}, (err, buf) => {
       expect(err).to.eq(null);
       expect(buf).not.to.eq(undefined)

@@ -1,4 +1,4 @@
-pragma solidity >=0.7.4 <0.9.0;
+pragma solidity ^0.7.3;
 
 /// SPDX-License-Identifier: UNLICENSED
 import "hardhat/console.sol";
