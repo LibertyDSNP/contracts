@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 
 contract Migrations {
     address public owner;
-    uint256 public lastCompletedMigration;
+    uint256 public lastCompleted;
 
     event DSNPMigration(uint256 lastCompleted, address contractAddr, string contractName, string abi);
 
@@ -18,10 +18,15 @@ contract Migrations {
     }
 
     function setCompleted(uint256 completed) public restricted {
-        lastCompletedMigration = completed;
+        lastCompleted = completed;
+    }
+
+    // required for truffle migration scripts
+    function lastCompletedMigration() public view returns (uint256) {
+        return lastCompleted;
     }
 
     function upgraded(address contractAddr, string memory contractName, string memory abijson) public restricted {
-        emit DSNPMigration(lastCompletedMigration, contractAddr, contractName, abijson);
+        emit DSNPMigration(lastCompleted, contractAddr, contractName, abijson);
     }
 }

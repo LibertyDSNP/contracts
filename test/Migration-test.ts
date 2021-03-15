@@ -5,7 +5,7 @@ const { expect } = chai;
 
 describe("Migrate", function () {
   const contractName = "Greeter"
-  const lastCompleted = 1234;
+  const lastCompleted = 1; // contract version uint256
 
   it("upgrade emits a migration log event", async function () {
     const Contract = await ethers.getContractFactory("Migrations");
@@ -23,10 +23,13 @@ describe("Migrate", function () {
     const abiJSONStr = JSON.stringify(parsedabi)
     await contract.setCompleted(lastCompleted);
 
-
     expect(await contract.upgraded(contract.address, contractName, abiJSONStr))
       .to
       .emit(contract, "DSNPMigration")
       .withArgs(lastCompleted, contract.address, contractName, abiJSONStr)
+
+    expect(await contract.lastCompletedMigration())
+      .to
+      .eq(lastCompleted)
   });
 });
