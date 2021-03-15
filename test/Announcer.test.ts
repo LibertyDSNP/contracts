@@ -14,17 +14,9 @@ describe("annoucement", () => {
     });
 
     it("batch emits a DSNPBatch event", async () => {
-      await expect(
-        announcer.batch(
-          hash,
-          "http://x.com"
-        )
-      )
+      await expect(announcer.batch(hash, "http://x.com"))
         .to.emit(announcer, "DSNPBatch")
-        .withArgs(
-          hash,
-          "http://x.com"
-        );
+        .withArgs(hash, "http://x.com");
     });
   });
 });
