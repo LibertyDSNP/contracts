@@ -1,10 +1,9 @@
-import { ethers } from "hardhat";
+import { ethers, waffle } from "hardhat";
 import chai from "chai";
 import * as fs from "fs";
-import { Event, EventFilter } from "ethers";
+import { Contract, Event, EventFilter } from "ethers";
 const { expect } = chai;
 import { keccak256 as keccak256Sha3 } from "js-sha3";
-import { bufferToRpcData } from "hardhat/internal/hardhat-network/provider/output";
 
 const keccak256 = data => "0x" + keccak256Sha3(data);
 const topic = keccak256("DSNPMigration(uint256 lastCompleted, address contractAddr, string contractName, string abi)");
@@ -14,6 +13,13 @@ const parsedABI = (abiPath) => {
   const fileContent = fs.readFileSync(abiPath);
   const parsed = JSON.parse(fileContent.toString())
   return parsed.abi
+}
+
+async function setup()  {
+  const Contract = await ethers.getContractFactory("Migrations",{});
+  const contract = await Contract.deploy();
+  await contract.deployed();
+  return contract
 }
 
 describe("Migrate", function () {
@@ -49,7 +55,7 @@ describe("Migrate", function () {
   })
 
   it("is able to get the contract address and abi, and call contract function", async function() {
-    const contractName = "SomeContract"
+    const contractName = "Migrations"
     const contract = await setup();
     const lastCompleted = 0
 
@@ -71,21 +77,16 @@ describe("Migrate", function () {
     const evt = events[0] || {}
     // @ts-ignore
     const { abi, contractAddr } = evt.decode(evt.data, evt.topics[topic]);
-    await ethers.getContractAt(abi, contractAddr);
-    // expect(await contract2.lastCompletedMigration()).to.eq(0);
-    //
-    // const signer = ethers.getSigners()[0];
-    // const newContractAtNewAddr = await contract2.connect(signer);
-    // expect(await newContractAtNewAddr.setLastCompleted(3333)).not.to.throw();
-    // expect(await newContractAtNewAddr.lastCompletedMigration()).to.eq(333);
 
+    // there's a bug in Hardhat's getContractAt that doesn't let us instantiate a
+    // contract through their mockProvider/signer test framework, using the ABI:
+    // https://github.com/nomiclabs/hardhat/issues/1340
+    // So here we just check that we really instantiated the right contract. We can't call
+    // the methods because there's no way (well, certainly no easy enough way)
+    // to deploy this contract to the mock network through the bare ethers interface.
+    const contract2 = new Contract(contractAddr, abi);
+    expect(contract2.functions).to.respondTo('lastCompletedMigration')
+    expect(contract2.functions).to.respondTo('setCompleted')
+    expect(contract2.functions).to.respondTo('upgraded')
   })
-
-  async function setup()  {
-    const Contract = await ethers.getContractFactory("Migrations");
-    const contract = await Contract.deploy();
-    await contract.deployed();
-    return contract
-  }
-
 });

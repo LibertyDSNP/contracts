@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.7.3;
 
 import "./IAnnounce.sol";

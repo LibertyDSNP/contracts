@@ -13,6 +13,7 @@ contract Migrations {
 
     constructor() {
         owner = msg.sender;
+        lastCompleted = 0;
     }
 
     modifier restricted() {

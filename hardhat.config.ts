@@ -1,6 +1,7 @@
 require('dotenv').config()
 import { HardhatUserConfig } from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-ethers";
 import "hardhat-typechain";
 
 const TESTNET_CHAIN_URL = process.env.TESTNET_CHAIN_URL;
