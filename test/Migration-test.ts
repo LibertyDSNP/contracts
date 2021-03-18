@@ -1,10 +1,20 @@
 import { ethers } from "hardhat";
 import chai from "chai";
 import * as fs from "fs";
-import { EventFilter } from "ethers";
-import { keccak256 } from "ethers/lib/utils";
+import { Event, EventFilter } from "ethers";
 const { expect } = chai;
+import { keccak256 as keccak256Sha3 } from "js-sha3";
+import { bufferToRpcData } from "hardhat/internal/hardhat-network/provider/output";
 
+const keccak256 = data => "0x" + keccak256Sha3(data);
+const topic = keccak256("DSNPMigration(uint256 lastCompleted, address contractAddr, string contractName, string abi)");
+
+const parsedABI = (abiPath) => {
+  expect(fs.existsSync(abiPath)).to.eq(true)
+  const fileContent = fs.readFileSync(abiPath);
+  const parsed = JSON.parse(fileContent.toString())
+  return parsed.abi
+}
 
 describe("Migrate", function () {
   it("upgrade emits a migration log event", async function () {
@@ -12,14 +22,13 @@ describe("Migrate", function () {
     const lastCompleted = 1; // contract version uint256
     const contract = await setup();
 
-    let parsedabi: any = {}
-    const abiPath = "./artifacts/contracts/Migrations.sol/Migrations.json"
-    fs.readFile(abiPath,{}, (err, buf) => {
-      expect(err).to.eq(null);
-      expect(buf).not.to.eq(undefined)
-      parsedabi = JSON.parse(buf.toString()).abi
-    });
+    await contract.setCompleted(lastCompleted);
+
+    const abiPath = "./artifacts/contracts/Migrations.sol/Migrations.json";
+    let parsedabi = parsedABI(abiPath);
+
     expect(parsedabi).not.to.eq({})
+
     const abiJSONStr = JSON.stringify(parsedabi)
     await contract.setCompleted(lastCompleted);
 
@@ -34,20 +43,42 @@ describe("Migrate", function () {
     const contract = await setup();
     await contract.setCompleted(lastCompleted);
 
-    expect(await contract.lastCompletedMigration)
+    expect(await contract.lastCompletedMigration())
       .to
       .eq(lastCompleted);
   })
 
-  it("is able to get the contract address and abi", async function() {
+  it("is able to get the contract address and abi, and call contract function", async function() {
+    const contractName = "SomeContract"
     const contract = await setup();
+    const lastCompleted = 0
 
-    const evtStr = keccak256("DSNPMigration");
+    const abiPath = "./artifacts/contracts/Migrations.sol/Migrations.json";
+    let parsedabi = parsedABI(abiPath);
+    const abiJSONStr = JSON.stringify(parsedabi)
+    expect(abiJSONStr).not.to.eq('{}')
+    expect(await contract.upgraded(contract.address, contractName, abiJSONStr))
+      .to
+      .emit(contract, "DSNPMigration")
+      .withArgs(lastCompleted, contract.address, contractName, abiJSONStr)
 
-    const filter:EventFilter = {topics: [evtStr]}
+    const filter:EventFilter = {topics: []}
 
     const events = await contract.queryFilter(filter);
-    console.log(events);
+    expect(events).not.to.eq(undefined)
+    expect(events.length).to.eq(1);
+
+    const evt = events[0] || {}
+    // @ts-ignore
+    const { abi, contractAddr } = evt.decode(evt.data, evt.topics[topic]);
+    await ethers.getContractAt(abi, contractAddr);
+    // expect(await contract2.lastCompletedMigration()).to.eq(0);
+    //
+    // const signer = ethers.getSigners()[0];
+    // const newContractAtNewAddr = await contract2.connect(signer);
+    // expect(await newContractAtNewAddr.setLastCompleted(3333)).not.to.throw();
+    // expect(await newContractAtNewAddr.lastCompletedMigration()).to.eq(333);
+
   })
 
   async function setup()  {
@@ -56,4 +87,5 @@ describe("Migrate", function () {
     await contract.deployed();
     return contract
   }
+
 });
