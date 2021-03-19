@@ -30,6 +30,10 @@ Environment Variables
 ## Ports
 
 ## ABI Files
-Download ABI files:
-- 
-- 
+Download ABI files [here](http://unknown.tbd)
+
+## Development
+* This repo uses [Hardhat](https://hardhat.org/getting-started/) + [ethers](https://docs.ethers.io/v5/) for interfacing with Ethereum,
+* [Waffle](https://ethereum-waffle.readthedocs.io/en/latest/index.html) for testing,
+* And [Truffle](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations) or truffle-style for contract migration.
+
