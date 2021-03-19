@@ -1,24 +1,25 @@
-require('dotenv').config()
+require("dotenv").config();
 import { HardhatUserConfig } from "hardhat/types";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-typechain";
 
-const TESTNET_CHAIN_URL = process.env.TESTNET_CHAIN_URL;
-const LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY = process.env.LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY;
-const TESTNET_ACCOUNT_PRIVATE_KEY = process.env.TESTNET_ACCOUNT_PRIVATE_KEY;
+const getAccounts = (network: string) => {
+  if (process.env.NODE_ENV === "test") return [];
 
-const hasENVS= [
-  TESTNET_CHAIN_URL,
-  LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY,
-  TESTNET_ACCOUNT_PRIVATE_KEY
-].filter(Boolean).length !== 0;
+  const accounts = {
+    localhost: [process.env.LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY],
+    testnet: [process.env.TESTNET_ACCOUNT_PRIVATE_KEY],
+  };
 
-if (!hasENVS) {
-  throw new Error("Ensure your environment variables are set");
-}
+  if (!!accounts[network]) {
+    throw new Error(`Your account environment variables for ${network} are not set`);
+  }
 
-const config: HardhatUserConfig =  {
+  return accounts[network];
+};
+
+const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
     compilers: [{ version: "0.7.3", settings: {} }],
@@ -31,15 +32,15 @@ const config: HardhatUserConfig =  {
       gasMultiplier: 1,
       url: "http://127.0.0.1:8545",
       chainId: 1776,
-      accounts: [`${LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY}`]
+      accounts: getAccounts("localhost"),
     },
     testnet: {
       gas: "auto",
       gasPrice: "auto",
       gasMultiplier: 1,
-      url: `${TESTNET_CHAIN_URL}`,
+      url: `${process.env.TESTNET_CHAIN_URL}`,
       chainId: 1776,
-      accounts: [`${TESTNET_ACCOUNT_PRIVATE_KEY }`]
+      accounts: getAccounts("testnet"),
     },
   },
 };
