@@ -22,7 +22,10 @@ Environment Variables
 | LOCAL_NETWORK_PRIVATE_KEY         | private key for an account we have on our local network that has eth.         | 
 | TESTNET_ACCOUNT_PRIVATE_KEY       | private key for an account we have on our test network that has eth.         |
 | TESTNET_CHAIN_URL     | Url to connect to tesnet        |     
-  
+| VALIDATOR1 | Public key of validator running on liberty-chain |
+| VALIDATOR2 | Public key of validator running on Liberty chain
+| BOOTNODE | enode address of the node our node would like to connect to |
+    
 ## Accounts
 
 ## Deployments
