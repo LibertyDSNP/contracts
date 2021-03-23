@@ -11,7 +11,7 @@
     "test": "NODE_ENV=test hardhat test",
     "deploy:testnet": "hardhat run ./scripts/deploy.ts --network testnet --verbose",
     "deploy:localhost": "hardhat run ./scripts/deploy.ts --network localhost --verbose",
-    "docker:create": "docker build . -t liberty-blockchain-node && docker container create --env-file ./.env -p 8549:8545 -p 8550:8546 -p 30305:30303 -p 30305:30303/udp --name liberty-chain-node liberty-blockchain-node:latest",
+    "docker:create": "docker build . -t liberty-blockchain-node && docker container create --env-file ./docker/.env -p 8549:8545 -p 8550:8546 -p 30305:30303 -p 30305:30303/udp --name liberty-chain-node liberty-blockchain-node:latest",
     "docker:start": "docker container start liberty-chain-node",
     "docker:stop": "docker container stop liberty-chain-node",
     "docker:rm": "(npm run docker:stop || true) && docker container rm liberty-chain-node",
