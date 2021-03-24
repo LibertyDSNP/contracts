@@ -1,0 +1,14 @@
+### Testnet Node
+
+#### Env variables
+Environment Variables
+1. create a `.env` file and set values for all variables in `.env.sample`
+
+|Env Variable Name      | Description |     
+| VALIDATOR1 | hex prefixed address for validator running on node called liberty-chain |
+| VALIDATOR2 | hex prefixed address for validator running on node called liberty-chain1
+| BOOTNODE | enode address of the node our node would like to connect to |
+
+#### Setup
+1. To spin up a node - add environment variables listed above to a `.env` file in the docker directory
+1. From the root directory of the project run `npm run docker:reset`
