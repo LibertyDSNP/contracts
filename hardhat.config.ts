@@ -12,7 +12,7 @@ const getAccounts = (network: string) => {
     testnet: [process.env.TESTNET_ACCOUNT_PRIVATE_KEY],
   };
 
-  if (!!accounts[network]) {
+  if (!accounts[network]) {
     throw new Error(`Your account environment variables for ${network} are not set`);
   }
 
