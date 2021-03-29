@@ -31,7 +31,7 @@ const config: HardhatUserConfig = {
       gasPrice: "auto",
       gasMultiplier: 1,
       url: "http://127.0.0.1:8545",
-      chainId: 1776,
+      chainId: 1886,
       accounts: getAccounts("localhost"),
     },
     testnet: {
@@ -39,7 +39,7 @@ const config: HardhatUserConfig = {
       gasPrice: "auto",
       gasMultiplier: 1,
       url: `${process.env.TESTNET_CHAIN_URL}`,
-      chainId: 1776,
+      chainId: 1886,
       accounts: getAccounts("testnet"),
     },
   },
