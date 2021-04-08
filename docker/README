@@ -34,7 +34,9 @@ This means the node is syncing.
 
 ### Debugging ethereum node logs
 To add logging to the docker container running the ethereum node - add a `logging=debug` flag to the `openethereum` command
-in the `./entrypoint.sh` file. 
+in the `./entrypoint.sh` file. Currently the logs are set to `-l sync=debug,rpc=trace`. 
+
+More information on logging can be found [here](https://openethereum.github.io/FAQ.html#how-can-i-make-openethereum-write-logs)
 
 When added it should look like this:
 `/home/openethereum/openethereum  --chain=/home/openethereum/liberty-testnet-spec.json --bootnodes=$BOOTNODE --jsonrpc-cors="all" --jsonrpc-hosts="all" --jsonrpc-interface="all" --jsonrpc-apis="all" --jsonrpc-port=8545 --logging={error|warn|info|debug|trace}`
