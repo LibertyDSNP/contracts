@@ -19,18 +19,27 @@ This means the node is syncing.
 #### For local setup 
 1. If you would like to run a node locally - run the following command:
 
-    `openethereum --chain=./docker/liberty-testnet-spec.json --jsonrpc-cors="all" --jsonrpc-hosts="all" --jsonrpc-interface="all" --jsonrpc-apis="all" --jsonrpc-port=8549 --port=3500 -l sync=debug,rpc=trace`
+    ```bash
+        openethereum --chain=./docker/liberty-testnet-spec.json --jsonrpc-cors="all" --jsonrpc-hosts="all" \
+        --jsonrpc-interface="all" --jsonrpc-apis="all" --jsonrpc-port=8549 --port=3500 -l sync=debug,rpc=trace
+    ```
 
 1. You can pass the `--bootnode=enode://{address_of_node_to connect to}` flag to the `openethereuem` command above in order to allow the node to connect when it spins up.
 
 1. To connect nodes manually run the following two commands from the command line:
     - Retrieve enode address from node: 
     
-        `curl --data '{"jsonrpc":"2.0","method":"parity_enode","params":[],"id":0}' -H "Content-Type: application/json" -X POST {address of node you want to query}`
+        ```
+            curl --data '{"jsonrpc":"2.0","method":"parity_enode","params":[],"id":0}' 
+            -H "Content-Type: application/json" -X POST {address of node you want to query}
+        ```      
     
     - Use enode address to sync with local node:
      
-     `curl --data '{"method":"parity_addReservedPeer","params":["{ENODE ADDRESS}"],"id":1,"jsonrpc":"2.0"}' -H "Content-Type: application/json" -X POST {IP:PORT that local node is running on - ex: http://localhost:8545}`
+        ```
+            curl --data '{"method":"parity_addReservedPeer","params":["{ENODE ADDRESS}"],"id":1,"jsonrpc":"2.0"}' \
+            -H "Content-Type: application/json" -X POST {IP:PORT that local node is running on - ex: http://localhost:8545}
+        ```      
 
 ### Debugging ethereum node logs
 To add logging to the docker container running the ethereum node - add a `logging=debug` flag to the `openethereum` command
@@ -39,7 +48,11 @@ in the `./entrypoint.sh` file. Currently the logs are set to `-l sync=debug,rpc=
 More information on logging can be found [here](https://openethereum.github.io/FAQ.html#how-can-i-make-openethereum-write-logs)
 
 When added it should look like this:
-`/home/openethereum/openethereum  --chain=/home/openethereum/liberty-testnet-spec.json --bootnodes=$BOOTNODE --jsonrpc-cors="all" --jsonrpc-hosts="all" --jsonrpc-interface="all" --jsonrpc-apis="all" --jsonrpc-port=8545 --logging={error|warn|info|debug|trace}`
+   
+        /home/openethereum/openethereum  --chain=/home/openethereum/liberty-testnet-spec.json --bootnodes=$BOOTNODE \
+        --jsonrpc-cors="all" --jsonrpc-hosts="all" --jsonrpc-interface="all" --jsonrpc-apis="all" --jsonrpc-port=8545 --logging={error|warn|info|debug|trace}
+        
+
 
 ### Open ethereuem file storage
 1. Open ethereuem stores files related to cache and database in the following directories
