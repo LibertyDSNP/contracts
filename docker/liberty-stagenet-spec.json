@@ -1,5 +1,5 @@
 {
-  "name": "LibertyTestnetPoA",
+  "name": "LibertyStagenetPoA",
   "engine": {
     "authorityRound": {
       "params": {
@@ -15,8 +15,8 @@
     "gasLimitBoundDivisor": "0x400",
     "maximumExtraDataSize": "0x20",
     "minGasLimit": "0x1388",
-    "networkID": "0x2323",
-    "chainID": "0x75E",
+    "networkID": "0x75C",
+    "chainID": "0x75C",
     "validateChainIdTransition": 0,
     "validateReceiptsTransition": 0,
     "eip98Transition": 0,
