@@ -9,7 +9,7 @@ const getAccounts = (network: string) => {
 
   const accounts = {
     localhost: [process.env.LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY],
-    testnet: [process.env.TESTNET_ACCOUNT_PRIVATE_KEY],
+    stagenet: [process.env.STAGENET_ACCOUNT_PRIVATE_KEY],
   };
 
   if (!accounts[network]) {
@@ -31,16 +31,16 @@ const config: HardhatUserConfig = {
       gasPrice: "auto",
       gasMultiplier: 1,
       url: "http://127.0.0.1:8545",
-      chainId: 1886,
+      chainId: 1883,
       accounts: getAccounts("localhost"),
     },
-    testnet: {
+    stagenet: {
       gas: "auto",
       gasPrice: "auto",
       gasMultiplier: 1,
-      url: `${process.env.TESTNET_CHAIN_URL}`,
-      chainId: 1886,
-      accounts: getAccounts("testnet"),
+      url: `${process.env.STAGENET_CHAIN_URL}`,
+      chainId: 1884,
+      accounts: getAccounts("stagenet"),
     },
   },
 };
