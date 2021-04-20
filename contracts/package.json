@@ -1,0 +1,21 @@
+{
+  "name": "@unfinishedlabs/contracts",
+  "description": "Official DSNP Interfaces, Contracts, and ABIs",
+  "version": "0.0.0",
+  "files": [
+    "**/*.sol",
+    "**/*.json"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:parent && npm run build:copyAbis && npm run build:copyMarkdown",
+    "build:parent": "cd ..; npm run build",
+    "build:copyMarkdown": "cp ../*.md ./",
+    "build:copyAbis": "mkdir -p abi && find ../artifacts/contracts -type f -name \"*.json\" ! -name  \"*.dbg.json\"  -exec cp {} abi/ \\;",
+    "prepublishOnly": "npm run build",
+    "postpublish": "npm run clean",
+    "clean": "rm -Rf abi *.md"
+  },
+  "repository": "https://github.com/LibertyDSNP/contracts",
+  "keywords": [],
+  "license": "CC-BY-SA-4.0"
+}

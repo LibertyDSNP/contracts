@@ -6,3 +6,6 @@ artifacts/
 cache/
 build/
 .env
+# Contract package generated files
+contracts/abi
+contracts/*.md
