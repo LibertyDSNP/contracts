@@ -17,20 +17,33 @@ Environment Variables
 This means the node is syncing.
 
 #### For local setup 
-1. If you would like to run a node locally - run the following command:
+1. If you would like to run a node locally that connects to `stagenet` - do the following:
 
+1. Copy validator values from `docker/env-variables/stagenet/.env.node1` in the [docker-node-poa repo](https://github.com/Liberty30/docker-node-poa) and paste them into `docker/liberty-stagenet-spec.json` 
+under value for validators so the spec looks like so
+
+```js
+ "validators": {
+    "list": [
+      {VALIDATOR1_VALUE},
+      {VALIDATOR2_VALUE}
+    ]
+  }
+```
+
+1.
     ```bash
-        openethereum --chain=./docker/liberty-testnet-spec.json --jsonrpc-cors="all" --jsonrpc-hosts="all" \
+        openethereum --chain=./docker/liberty-stagenet-spec.json --jsonrpc-cors="all" --jsonrpc-hosts="all" \
         --jsonrpc-interface="all" --jsonrpc-apis="all" --jsonrpc-port=8549 --port=3500 -l sync=debug,rpc=trace
     ```
 
-1. You can pass the `--bootnode=enode://{address_of_node_to connect to}` flag to the `openethereuem` command above in order to allow the node to connect when it spins up.
+1. You can pass the `--bootnodes={endode address_of_node_to connect to}` flag to the `openethereuem` command above in order to allow the node to connect when it spins up.
 
 1. To connect nodes manually run the following two commands from the command line:
     - Retrieve enode address from node: 
     
         ```
-            curl --data '{"jsonrpc":"2.0","method":"parity_enode","params":[],"id":0}' 
+            curl --data '{"jsonrpc":"2.0","method":"parity_enode","params":[],"id":0}' \
             -H "Content-Type: application/json" -X POST {address of node you want to query}
         ```      
     
@@ -40,6 +53,7 @@ This means the node is syncing.
             curl --data '{"method":"parity_addReservedPeer","params":["{ENODE ADDRESS}"],"id":1,"jsonrpc":"2.0"}' \
             -H "Content-Type: application/json" -X POST {IP:PORT that local node is running on - ex: http://localhost:8545}
         ```      
+
 
 ### Debugging ethereum node logs
 To add logging to the docker container running the ethereum node - add a `logging=debug` flag to the `openethereum` command
@@ -52,8 +66,6 @@ When added it should look like this:
         /home/openethereum/openethereum  --chain=/home/openethereum/liberty-testnet-spec.json --bootnodes=$BOOTNODE \
         --jsonrpc-cors="all" --jsonrpc-hosts="all" --jsonrpc-interface="all" --jsonrpc-apis="all" --jsonrpc-port=8545 --logging={error|warn|info|debug|trace}
         
-
-
 ### Open ethereuem file storage
 1. Open ethereuem stores files related to cache and database in the following directories
     ```
@@ -66,5 +78,4 @@ When added it should look like this:
  
     - If you are running locally and seeing errors connecting to nodes that no longer exist - you may want to delete
     the `nodes.json` file to clear the cache. Openethereum will regenerate it once you restart a node.
-
 
