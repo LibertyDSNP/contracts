@@ -36,8 +36,7 @@ async function main() {
   let parsedabi = parsedABI(abiPath);
   const abiJSONStr = JSON.stringify(parsedabi);
   console.log("abi", abiJSONStr);
-  await contract1.setCompleted(1);
-  await contract1.upgraded(contract.address, "Announcer", abiJSONStr)
+  await contract1.upgraded(contract.address, "Announcer")
 }
 
 main()
