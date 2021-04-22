@@ -23,14 +23,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Liberty30/contracts.git"
+    "url": "git+https://github.com/LibertyDSNP/contracts.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Liberty30/contracts/issues"
+    "url": "https://github.com/LibertyDSNP/contracts/issues"
   },
-  "homepage": "https://github.com/Liberty30/contracts#readme",
+  "homepage": "https://github.com/LibertyDSNP/contracts#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
