@@ -7,7 +7,7 @@ RUN apk add --no-cache jq bash
 WORKDIR /home/openethereum
 
 COPY ./docker/entrypoint.sh /home/openethereum/
-COPY ./docker/liberty-testnet-spec.json /home/openethereum/
+COPY ./docker/liberty-stagenet-spec.json /home/openethereum/
 
 EXPOSE 80 8545 8546 30303
 
