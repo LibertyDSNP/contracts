@@ -5,7 +5,7 @@ import "@nomiclabs/hardhat-ethers";
 import "hardhat-typechain";
 
 const getAccounts = (network: string) => {
-  if (process.env.NODE_ENV === "test") return [];
+  if (process.env.CI || process.env.NODE_ENV === "test") return [];
 
   const accounts = {
     localhost: [process.env.LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY],
