@@ -30,6 +30,7 @@ jobs:
         run: npm run lint
 
       - name: Build & Publish Dry Run
+        working-directory: ./contracts
         run: npm publish --dry-run
 
       - name: Test
