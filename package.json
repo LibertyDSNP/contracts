@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run clean && npm run compile",
+    "build": "npm run hardhat:clean && npm run hardhat:compile",
     "hardhat:clean": "hardhat clean",
     "hardhat:compile": "hardhat compile",
     "hardhat:console": "hardhat console",
@@ -26,7 +26,7 @@
     "url": "git+https://github.com/Liberty30/contracts.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/Liberty30/contracts/issues"
   },
