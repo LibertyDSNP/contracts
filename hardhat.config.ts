@@ -19,6 +19,11 @@ const getAccounts = (network: string) => {
   return accounts[network];
 };
 
+//We have multiple environments that we are using the hardhat config for
+// localhost refers to the network hardhat is using to spin up a node
+// devnet refers to the network we are using to connect to running our POA nodes locally
+// stagenet refers to the network running our POA nodes on AWS
+
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
