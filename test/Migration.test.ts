@@ -55,7 +55,7 @@ describe("Migrate", function () {
 
     const evt = events[0] || {};
     // @ts-ignore
-    const { abi, contractAddr } = evt.decode(evt.data, evt.topics[topic]);
+    const { contractAddr } = evt.decode(evt.data, evt.topics[topic]);
 
     // there's a bug in Hardhat's getContractAt that doesn't let us instantiate a
     // contract through their mockProvider/signer test framework, using the ABI:
@@ -63,9 +63,7 @@ describe("Migrate", function () {
     // So here we just check that we really instantiated the right contract. We can't call
     // the methods because there's no way (well, certainly no easy enough way)
     // to deploy this contract to the mock network through the bare ethers interface.
-    const contract2 = new Contract(contractAddr, abi);
-    expect(contract2.functions).to.respondTo("lastCompletedMigration");
-    expect(contract2.functions).to.respondTo("setCompleted");
+    const contract2 = new Contract(contractAddr, abiJSONStr);
     expect(contract2.functions).to.respondTo("upgraded");
   });
 });
