@@ -4,14 +4,7 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
-import fs from "fs";
 
-
-const parsedABI = (abiPath) => {
-  const fileContent = fs.readFileSync(abiPath);
-  const parsed = JSON.parse(fileContent.toString());
-  return parsed.abi;
-};
 async function main() {
   const [deployer] = await ethers.getSigners();
 

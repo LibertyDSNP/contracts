@@ -7,7 +7,7 @@ import { keccak256 as keccak256Sha3 } from "js-sha3";
 
 const keccak256 = (data) => "0x" + keccak256Sha3(data);
 const topic = keccak256(
-  "DSNPMigration(uint256 lastCompleted, address contractAddr, string contractName, string abi)"
+  "DSNPMigration(bytes32,string)"
 );
 
 const parsedABI = (abiPath) => {
@@ -27,44 +27,25 @@ async function setup() {
 describe("Migrate", function () {
   it("upgrade emits a migration log event", async function () {
     const contractName = "Doesnotmatter";
-    const lastCompleted = 1; // contract version uint256
     const contract = await setup();
 
-    await contract.setCompleted(lastCompleted);
-
-    const abiPath = "./artifacts/contracts/Migrations.sol/Migrations.json";
-    let parsedabi = parsedABI(abiPath);
-
-    expect(parsedabi).not.to.eq({});
-
-    const abiJSONStr = JSON.stringify(parsedabi);
-    await contract.setCompleted(lastCompleted);
-
-    expect(await contract.upgraded(contract.address, contractName, abiJSONStr))
+    expect(await contract.upgraded(contract.address, contractName))
       .to.emit(contract, "DSNPMigration")
-      .withArgs(lastCompleted, contract.address, contractName, abiJSONStr);
+      .withArgs(contract.address, contractName);
   });
 
-  it("sets lastCompleted", async function () {
-    const lastCompleted = 99; // contract version uint256
-    const contract = await setup();
-    await contract.setCompleted(lastCompleted);
 
-    expect(await contract.lastCompletedMigration()).to.eq(lastCompleted);
-  });
-
-  it("is able to get the contract address and abi, and call contract function", async function () {
+  it("is able to get the contract address, and call contract function", async function () {
     const contractName = "Migrations";
     const contract = await setup();
-    const lastCompleted = 0;
 
     const abiPath = "./artifacts/contracts/Migrations.sol/Migrations.json";
     let parsedabi = parsedABI(abiPath);
     const abiJSONStr = JSON.stringify(parsedabi);
     expect(abiJSONStr).not.to.eq("{}");
-    expect(await contract.upgraded(contract.address, contractName, abiJSONStr))
+    expect(await contract.upgraded(contract.address, contractName))
       .to.emit(contract, "DSNPMigration")
-      .withArgs(lastCompleted, contract.address, contractName, abiJSONStr);
+      .withArgs(contract.address, contractName);
 
     const filter: EventFilter = { topics: [] };
 
