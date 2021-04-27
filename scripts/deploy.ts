@@ -17,25 +17,23 @@ async function main() {
 
   console.log("provider", ethers.provider);
   console.log("Deploying contracts with the account:", deployer.address);
-
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   const Migrations = await ethers.getContractFactory("Migrations", {});
   const contract1 = await Migrations.deploy();
   await contract1.deployed();
+  console.log("migrations deployed to:", contract1.address);
 
-  // We get the contract to deploy
+  // Emit DSNP migration event for the Migrations contract
+  await contract1.upgraded(contract1.address, "Migrations")
+
+  // Deploy the Announcer Contract
   const Announcer = await ethers.getContractFactory("Announcer");
   const announcer = await Announcer.deploy();
   const contract = await announcer.deployed();
   console.log("announcer deployed to:", contract.address);
 
-
-  console.log("migrations deployed to:", contract1.address);
-  const abiPath = "./artifacts/contracts/Announcer.sol/Announcer.json";
-  let parsedabi = parsedABI(abiPath);
-  const abiJSONStr = JSON.stringify(parsedabi);
-  console.log("abi", abiJSONStr);
+  // Emit DSNP migration event for the Announcer contract
   await contract1.upgraded(contract.address, "Announcer")
 }
 
