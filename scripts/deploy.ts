@@ -18,7 +18,7 @@ async function main() {
   console.log("migrations deployed to:", contract1.address);
 
   // Emit DSNP migration event for the Migrations contract
-  await contract1.upgraded(contract1.address, "Migrations")
+  await contract1.upgraded(contract1.address, "Migrations");
 
   // Deploy the Announcer Contract
   const Announcer = await ethers.getContractFactory("Announcer");
@@ -27,7 +27,7 @@ async function main() {
   console.log("announcer deployed to:", contract.address);
 
   // Emit DSNP migration event for the Announcer contract
-  await contract1.upgraded(contract.address, "Announcer")
+  await contract1.upgraded(contract.address, "Announcer");
 }
 
 main()

@@ -6,9 +6,7 @@ const { expect } = chai;
 import { keccak256 as keccak256Sha3 } from "js-sha3";
 
 const keccak256 = (data) => "0x" + keccak256Sha3(data);
-const topic = keccak256(
-  "DSNPMigration(bytes32,string)"
-);
+const topic = keccak256("DSNPMigration(bytes32,string)");
 
 const parsedABI = (abiPath) => {
   expect(fs.existsSync(abiPath)).to.eq(true);
@@ -33,7 +31,6 @@ describe("Migrate", function () {
       .to.emit(contract, "DSNPMigration")
       .withArgs(contract.address, contractName);
   });
-
 
   it("is able to get the contract address, and call contract function", async function () {
     const contractName = "Migrations";

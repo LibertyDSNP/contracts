@@ -8,10 +8,7 @@ contract Migrations {
 
     // This event indicates the last completed migration, the new contract address, and the ABI
     // for the new contract.
-    event DSNPMigration(
-        address contractAddr,
-        string contractName
-    );
+    event DSNPMigration(address contractAddr, string contractName);
 
     constructor() {
         owner = msg.sender;
@@ -21,12 +18,8 @@ contract Migrations {
         if (msg.sender == owner) _;
     }
 
-
     // This method should be called only after deployment has succeeded.
-    function upgraded(
-        address contractAddr,
-        string memory contractName
-    ) public restricted {
+    function upgraded(address contractAddr, string memory contractName) public restricted {
         emit DSNPMigration(contractAddr, contractName);
     }
 }
