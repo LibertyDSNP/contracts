@@ -1,15 +1,14 @@
 require("dotenv").config();
-import { HardhatUserConfig } from "hardhat/types";
+import { HardhatUserConfig } from "hardhat/src/types/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
-import "hardhat-typechain";
 
 const getAccounts = (network: string) => {
   if (process.env.CI || process.env.NODE_ENV === "test") return [];
 
   const accounts = {
     localhost: [process.env.LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY],
-    testnet: [process.env.TESTNET_ACCOUNT_PRIVATE_KEY],
+    stagenet: [process.env.STAGENET_ACCOUNT_PRIVATE_KEY],
   };
 
   if (!accounts[network]) {
@@ -18,6 +17,11 @@ const getAccounts = (network: string) => {
 
   return accounts[network];
 };
+
+//We have multiple environments that we are using the hardhat config for
+// localhost refers to the network hardhat is using to spin up a node
+// devnet refers to the network we are using to connect to running our POA nodes locally
+// stagenet refers to the network running our POA nodes on AWS
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -31,16 +35,24 @@ const config: HardhatUserConfig = {
       gasPrice: "auto",
       gasMultiplier: 1,
       url: "http://127.0.0.1:8545",
-      chainId: 1886,
+      chainId: 31337,
       accounts: getAccounts("localhost"),
     },
-    testnet: {
+    devnet: {
       gas: "auto",
       gasPrice: "auto",
       gasMultiplier: 1,
-      url: `${process.env.TESTNET_CHAIN_URL}`,
-      chainId: 1886,
-      accounts: getAccounts("testnet"),
+      url: "http://127.0.0.1:8545",
+      chainId: 1883,
+      accounts: getAccounts("localhost"),
+    },
+    stagenet: {
+      gas: "auto",
+      gasPrice: "auto",
+      gasMultiplier: 1,
+      url: `${process.env.STAGENET_CHAIN_URL}`,
+      chainId: 1884,
+      accounts: getAccounts("stagenet"),
     },
   },
 };
