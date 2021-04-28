@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run hardhat:compile --force",
+    "build": "npm run hardhat:clean && npm run hardhat:compile",
     "hardhat": "hardhat",
     "hardhat:clean": "hardhat clean",
     "hardhat:compile": "hardhat compile",
@@ -45,7 +45,6 @@
     "ethereum-waffle": "^3.3.0",
     "ethers": "^5.1.4",
     "hardhat": "^2.2.1",
-    "hardhat-typechain": "^0.3.5",
     "js-sha3": "^0.8.0",
     "prettier": "^2.2.1",
     "prettier-plugin-solidity": "^1.0.0-beta.5",

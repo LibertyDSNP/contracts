@@ -1,8 +1,7 @@
 require("dotenv").config();
-import { HardhatUserConfig } from "hardhat/types";
+import { HardhatUserConfig } from "hardhat/src/types/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
-import "hardhat-typechain";
 
 const getAccounts = (network: string) => {
   if (process.env.CI || process.env.NODE_ENV === "test") return [];
