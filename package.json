@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run hardhat:clean && npm run hardhat:compile",
+    "build": "npm run hardhat:compile --force",
     "hardhat": "hardhat",
     "hardhat:clean": "hardhat clean",
     "hardhat:compile": "hardhat compile",
