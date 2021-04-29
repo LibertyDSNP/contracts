@@ -5,6 +5,7 @@ cache/
 artifacts/
 cache/
 build/
+dist/
 .env
 # Contract package generated files
 contracts/abi

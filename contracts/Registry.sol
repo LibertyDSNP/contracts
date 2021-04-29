@@ -2,6 +2,7 @@
 pragma solidity ^0.7.3;
 
 import "./IRegistry.sol";
+import "./IDelegate.sol";
 import "hardhat/console.sol";
 
 contract Registry is IRegistry {
@@ -23,12 +24,10 @@ contract Registry is IRegistry {
      * @return id of registration
      * 
      * TODO: MUST be called by someone who is authorized on the contract
-     *      via `IDelegation(addr).isAuthorizedTo(msg.sender, Permission.OWNERSHIP_TRANSFER, block.number)`
+     *      via `IDelegation(addr).isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
      */
     function register(address addr, string calldata handle) external override returns (uint64) {
-        // TODO: message identity contract for authorization
-
-        return registerAfterAuth(addr, handle);
+        return registerAfterAuth(msg.sender, addr, handle);
     }
 
     /**
@@ -41,28 +40,31 @@ contract Registry is IRegistry {
      * @return id of registration
      * 
      * MUST be signed by someone who is authorized on the contract
-     *      via `IDelegation(addr).isAuthorizedTo(ecrecovedAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
+     *      via `IDelegation(addr).isAuthorizedTo(ecrecovedAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
      */
     function registerByEIP712Sig(bytes32 r, bytes32 s, uint32 v, address addr, string calldata handle) external override returns (uint64) {
+        require(false, "Not implemented");
+        // address owner = ecrecover(hashCreateRequest(addr, handle, domainSeparator), sigV, sigR, sigS);
 
-        // TODO: message identity contract for authorization with EIP712
-
-        return registerAfterAuth(addr, handle);
+        // return registerAfterAuth(owner, addr, handle);
     }
 
     /**
      * @dev Register a new DSNP Id. This checks that the handle has not already been set, 
      *      assigns the handle the next id and saves the address
+     * @param identity Authenticated address that needs to be authorized
      * @param addr Address for the new DSNP Id to point at
      * @param handle The handle for discovery
      * @return id of registration
      */
-    function registerAfterAuth(address addr, string calldata handle) private returns (uint64) {
+    function registerAfterAuth(address identity, address addr, string calldata handle) private returns (uint64) {
         // Checks
+
         Registration storage reg = registrations[handle];
         require(reg.id == 0, "Handle already exists");
 
         // Effects
+
         // Set id to latest sequence number then increment
         reg.id = idSequence++;
 
@@ -70,6 +72,11 @@ contract Registry is IRegistry {
 
         // emit registration event
         emit DSNPRegistryUpdate(reg.id, addr, handle);
+
+        // Interactiions
+
+        IDelegation authorization = IDelegation(addr);
+        require(authorization.isAuthorizedTo(identity, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
 
         return reg.id;
     }
@@ -80,21 +87,30 @@ contract Registry is IRegistry {
      * @param handle The handle to modify
      * 
      * MUST be called by someone who is authorized on the contract
-     *      via `IDelegation(oldAddr).isAuthorizedTo(oldAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
+     *      via `IDelegation(oldAddr).isAuthorizedTo(oldAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
      * MUST emit DSNPRegistryUpdate
      */
     function changeAddress(address newAddr, string calldata handle) external override {
-        // TODO: message old identity contract for authorization
-        // TODO: message new identity contract for authorization?
-
         // Checks
-        Registration storage reg = registrations[handle];
+
+         Registration storage reg = registrations[handle];
         require(reg.id != 0, "Handle does not exist");
 
-
         // Effects
+
+        address oldAddr = reg.identityAddress;
         reg.identityAddress = newAddr;
         emit DSNPRegistryUpdate(reg.id, newAddr, handle);
+
+        // Interactions
+
+        // ensure old delegation contract authorizes this change
+        IDelegation oldAuth = IDelegation(oldAddr);
+        require(oldAuth.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
+ 
+        // ensure new delegation contract authorizes this change
+        IDelegation newAuth = IDelegation(newAddr);
+        require(newAuth.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
     }
 
     /**
@@ -106,23 +122,22 @@ contract Registry is IRegistry {
      * @param handle The handle to modify
      * 
      * MUST be signed by someone who is authorized on the contract
-     *      via `IDelegation(oldAddr).isAuthorizedTo(ecrecovedAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
+     *      via `IDelegation(oldAddr).isAuthorizedTo(ecrecovedAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
      * MUST check that newAddr implements IDelegation interface
      * TODO: FIX THE ISSUE OF newAddr not being a part of the creation
      * MUST emit DSNPRegistryUpdate
      */
     function changeAddressByEIP712Sig(bytes32 r, bytes32 s, uint32 v, address newAddr, string calldata handle) external override {
-        // TODO: message old identity contract for authorization
-        // TODO: message new identity contract for authorization?
+        require(false, "Not implemented");
 
         // Checks
-        Registration storage reg = registrations[handle];
-        require(reg.id != 0, "Handle does not exist");
+        // Registration storage reg = registrations[handle];
+        // require(reg.id != 0, "Handle does not exist");
 
 
         // Effects
-        reg.identityAddress = newAddr;
-        emit DSNPRegistryUpdate(reg.id, newAddr, handle);
+        // reg.identityAddress = newAddr;
+        // emit DSNPRegistryUpdate(reg.id, newAddr, handle);
     }
 
     /**
@@ -132,7 +147,7 @@ contract Registry is IRegistry {
      * 
      * MUST NOT allow a registration of a handle that is already in use
      * MUST be called by someone who is authorized on the contract
-     *      via `IDelegation(oldHandle -> addr).isAuthorizedTo(ecrecovedAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
+     *      via `IDelegation(oldHandle -> addr).isAuthorizedTo(ecrecovedAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
      * MUST emit DSNPRegistryUpdate
      */
     function changeHandle(string calldata oldHandle, string calldata newHandle) external override {
@@ -140,8 +155,6 @@ contract Registry is IRegistry {
 
         Registration storage oldReg = registrations[oldHandle];
         require(oldReg.id != 0, "Old handle does not exist");
-
-        // TODO: message oldReg.identityAddress for authorization
 
         Registration storage newReg = registrations[newHandle];
         require(newReg.id == 0, "New handle already exists");
@@ -157,6 +170,11 @@ contract Registry is IRegistry {
 
         // notify the change
         emit DSNPRegistryUpdate(newReg.id, newReg.identityAddress, newHandle);
+
+        // Interactions
+
+        IDelegation authorization = IDelegation(oldReg.identityAddress);
+        require(authorization.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
     }
 
     /**
@@ -169,10 +187,13 @@ contract Registry is IRegistry {
      * 
      * MUST NOT allow a registration of a handle that is already in use
      * MUST be signed by someone who is authorized on the contract
-     *      via `IDelegation(handle -> addr).isAuthorizedTo(ecrecovedAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
+     *      via `IDelegation(handle -> addr).isAuthorizedTo(ecrecovedAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
      * MUST emit DSNPRegistryUpdate
      */
     function changeHandleByEIP712Sig(bytes32 r, bytes32 s, uint32 v, string calldata oldHandle, string calldata newHandle) external override {
+        require(false, "Not implemented");
+
+        /*
         // Checks
 
         Registration storage oldReg = registrations[oldHandle];
@@ -194,6 +215,7 @@ contract Registry is IRegistry {
 
         // notify the change
         emit DSNPRegistryUpdate(newReg.id, newReg.identityAddress, newHandle);
+        */
     }
 
     /**
@@ -204,7 +226,9 @@ contract Registry is IRegistry {
      */
     function resolveHandleToAddress(string calldata handle) external view override returns (address) {
         Registration memory reg = registrations[handle];
+
         require(reg.id != 0, "Handle does not exist");
+
         return reg.identityAddress;
     }
 
@@ -216,7 +240,9 @@ contract Registry is IRegistry {
      */
     function resolveHandleToId(string calldata handle)  external view override returns (uint64) {
         Registration memory reg = registrations[handle];
+
         require(reg.id != 0, "Handle does not exist");
+
         return reg.id;
     }
 }
