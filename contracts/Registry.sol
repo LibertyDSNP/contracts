@@ -27,37 +27,6 @@ contract Registry is IRegistry {
      *      via `IDelegation(addr).isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
      */
     function register(address addr, string calldata handle) external override returns (uint64) {
-        return registerAfterAuth(msg.sender, addr, handle);
-    }
-
-    /**
-     * @dev Register a new DSNP Id by EIP-712 Signature
-     * @param r ECDSA Signature r value
-     * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
-     * @param addr Address for the new DSNP Id to point at
-     * @param handle The handle for discovery
-     * @return id of registration
-     * 
-     * MUST be signed by someone who is authorized on the contract
-     *      via `IDelegation(addr).isAuthorizedTo(ecrecovedAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
-     */
-    function registerByEIP712Sig(bytes32 r, bytes32 s, uint32 v, address addr, string calldata handle) external override returns (uint64) {
-        require(false, "Not implemented");
-        // address owner = ecrecover(hashCreateRequest(addr, handle, domainSeparator), sigV, sigR, sigS);
-
-        // return registerAfterAuth(owner, addr, handle);
-    }
-
-    /**
-     * @dev Register a new DSNP Id. This checks that the handle has not already been set, 
-     *      assigns the handle the next id and saves the address
-     * @param identity Authenticated address that needs to be authorized
-     * @param addr Address for the new DSNP Id to point at
-     * @param handle The handle for discovery
-     * @return id of registration
-     */
-    function registerAfterAuth(address identity, address addr, string calldata handle) private returns (uint64) {
         // Checks
 
         Registration storage reg = registrations[handle];
@@ -76,7 +45,7 @@ contract Registry is IRegistry {
         // Interactiions
 
         IDelegation authorization = IDelegation(addr);
-        require(authorization.isAuthorizedTo(identity, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
+        require(authorization.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
 
         return reg.id;
     }
@@ -114,33 +83,6 @@ contract Registry is IRegistry {
     }
 
     /**
-     * @dev Alter a DSNP Id resolution address by EIP-712 Signature
-     * @param r ECDSA Signature r value
-     * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
-     * @param newAddr New address for the DSNP Id to point at
-     * @param handle The handle to modify
-     * 
-     * MUST be signed by someone who is authorized on the contract
-     *      via `IDelegation(oldAddr).isAuthorizedTo(ecrecovedAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
-     * MUST check that newAddr implements IDelegation interface
-     * TODO: FIX THE ISSUE OF newAddr not being a part of the creation
-     * MUST emit DSNPRegistryUpdate
-     */
-    function changeAddressByEIP712Sig(bytes32 r, bytes32 s, uint32 v, address newAddr, string calldata handle) external override {
-        require(false, "Not implemented");
-
-        // Checks
-        // Registration storage reg = registrations[handle];
-        // require(reg.id != 0, "Handle does not exist");
-
-
-        // Effects
-        // reg.identityAddress = newAddr;
-        // emit DSNPRegistryUpdate(reg.id, newAddr, handle);
-    }
-
-    /**
      * @dev Alter a DSNP Id handle
      * @param oldHandle The previous handle for modification
      * @param newHandle The new handle to use for discovery
@@ -175,47 +117,6 @@ contract Registry is IRegistry {
 
         IDelegation authorization = IDelegation(oldReg.identityAddress);
         require(authorization.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
-    }
-
-    /**
-     * @dev Alter a DSNP Id handle by EIP-712 Signature
-     * @param r ECDSA Signature r value
-     * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
-     * @param oldHandle The previous handle for modification
-     * @param newHandle The new handle to use for discovery
-     * 
-     * MUST NOT allow a registration of a handle that is already in use
-     * MUST be signed by someone who is authorized on the contract
-     *      via `IDelegation(handle -> addr).isAuthorizedTo(ecrecovedAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
-     * MUST emit DSNPRegistryUpdate
-     */
-    function changeHandleByEIP712Sig(bytes32 r, bytes32 s, uint32 v, string calldata oldHandle, string calldata newHandle) external override {
-        require(false, "Not implemented");
-
-        /*
-        // Checks
-
-        Registration storage oldReg = registrations[oldHandle];
-        require(oldReg.id != 0, "Old handle does not exist");
-
-        // TODO: message oldReg.identityAddress for authorization with EIP712
-
-        Registration storage newReg = registrations[newHandle];
-        require(newReg.id == 0, "New handle already exists");
-
-        // Effects
-
-        // assign to new registration
-        newReg.id = oldReg.id;
-        newReg.identityAddress = oldReg.identityAddress;
-
-        // signal that the old handle is unassigned and available
-        oldReg.id = 0;
-
-        // notify the change
-        emit DSNPRegistryUpdate(newReg.id, newReg.identityAddress, newHandle);
-        */
     }
 
     /**

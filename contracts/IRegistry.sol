@@ -27,21 +27,6 @@ interface IRegistry {
     function register(address addr, string calldata handle) external returns (uint64);
 
     /**
-     * @dev Register a new DSNP Id by EIP-712 Signature
-     * @param r ECDSA Signature r value
-     * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
-     * @param addr Address for the new DSNP Id to point at
-     * @param handle The handle for discovery
-     * 
-     * MUST reject if the handle is already in use 
-     * MUST be signed by someone who is authorized on the contract
-     *      via `IDelegation(addr).isAuthorizedTo(ecrecovedAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
-     * MUST emit DSNPRegistryUpdate
-     */
-    function registerByEIP712Sig(bytes32 r, bytes32 s, uint32 v, address addr, string calldata handle) external returns (uint64);
-
-    /**
      * @dev Alter a DSNP Id resolution address
      * @param newAddr Original or new address to resolve to
      * @param handle The handle to modify
@@ -51,22 +36,6 @@ interface IRegistry {
      * MUST emit DSNPRegistryUpdate
      */
     function changeAddress(address newAddr, string calldata handle) external;
-
-    /**
-     * @dev Alter a DSNP Id resolution address by EIP-712 Signature
-     * @param r ECDSA Signature r value
-     * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
-     * @param newAddr New address for the DSNP Id to point at
-     * @param handle The handle to modify
-     * 
-     * MUST be signed by someone who is authorized on the contract
-     *      via `IDelegation(oldAddr).isAuthorizedTo(ecrecovedAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
-     * MUST check that newAddr implements IDelegation interface
-     * TODO: FIX THE ISSUE OF newAddr not being a part of the creation
-     * MUST emit DSNPRegistryUpdate
-     */
-    function changeAddressByEIP712Sig(bytes32 r, bytes32 s, uint32 v, address newAddr, string calldata handle) external;
 
     /**
      * @dev Alter a DSNP Id handle
@@ -79,21 +48,6 @@ interface IRegistry {
      * MUST emit DSNPRegistryUpdate
      */
     function changeHandle(string calldata oldHandle, string calldata newHandle) external;
-
-    /**
-     * @dev Alter a DSNP Id handle by EIP-712 Signature
-     * @param r ECDSA Signature r value
-     * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
-     * @param oldHandle The previous handle for modification
-     * @param newHandle The new handle to use for discovery
-     * 
-     * MUST NOT allow a registration of a handle that is already in use
-     * MUST be signed by someone who is authorized on the contract
-     *      via `IDelegation(handle -> addr).isAuthorizedTo(ecrecovedAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
-     * MUST emit DSNPRegistryUpdate
-     */
-    function changeHandleByEIP712Sig(bytes32 r, bytes32 s, uint32 v, string calldata oldHandle, string calldata newHandle) external;
 
     /**
      * @dev Resolve a handle to a contract address
