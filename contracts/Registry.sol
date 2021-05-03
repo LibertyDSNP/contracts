@@ -7,7 +7,7 @@ import "./IDelegate.sol";
 contract Registry is IRegistry {
     uint64 private idSequence = 1000;
       
-    // Id and identity contract adddress to be mapped to handle 
+    // Id and identity contract address to be mapped to handle 
     struct Registration {
         uint64 id;
         address identityAddress;
@@ -38,7 +38,7 @@ contract Registry is IRegistry {
         // emit registration event
         emit DSNPRegistryUpdate(reg.id, addr, handle);
 
-        // Interactiions
+        // Interactions
 
         IDelegation authorization = IDelegation(addr);
         require(authorization.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
