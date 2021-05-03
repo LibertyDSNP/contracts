@@ -5,7 +5,7 @@ import "./IRegistry.sol";
 import "./IDelegate.sol";
 
 contract Registry is IRegistry {
-    uint64 private idSequence = 1;
+    uint64 private idSequence = 1000;
       
     // Id and identity contract adddress to be mapped to handle 
     struct Registration {
@@ -21,9 +21,6 @@ contract Registry is IRegistry {
      * @param addr Address for the new DSNP Id to point at
      * @param handle The handle for discovery
      * @return id of registration
-     * 
-     * TODO: MUST be called by someone who is authorized on the contract
-     *      via `IDelegation(addr).isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
      */
     function register(address addr, string calldata handle) external override returns (uint64) {
         // Checks
@@ -53,10 +50,6 @@ contract Registry is IRegistry {
      * @dev Alter a DSNP Id resolution address
      * @param newAddr Original or new address to resolve to
      * @param handle The handle to modify
-     * 
-     * MUST be called by someone who is authorized on the contract
-     *      via `IDelegation(oldAddr).isAuthorizedTo(oldAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
-     * MUST emit DSNPRegistryUpdate
      */
     function changeAddress(address newAddr, string calldata handle) external override {
         // Checks
@@ -85,11 +78,6 @@ contract Registry is IRegistry {
      * @dev Alter a DSNP Id handle
      * @param oldHandle The previous handle for modification
      * @param newHandle The new handle to use for discovery
-     * 
-     * MUST NOT allow a registration of a handle that is already in use
-     * MUST be called by someone who is authorized on the contract
-     *      via `IDelegation(oldHandle -> addr).isAuthorizedTo(ecrecovedAddr, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number)`
-     * MUST emit DSNPRegistryUpdate
      */
     function changeHandle(string calldata oldHandle, string calldata newHandle) external override {
         // Checks

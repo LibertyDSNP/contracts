@@ -10,6 +10,8 @@ describe("Registry", () => {
 
   let registry;
 
+  const firstId = 1000;
+
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     signer1 = signers[0];
@@ -39,7 +41,7 @@ describe("Registry", () => {
     it("emits a DSNPRegistryUpdate event", async () => {
       await expect(registry.connect(signer1).register(delegate1.address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(1, delegate1.address, handle);
+        .withArgs(firstId, delegate1.address, handle);
     });
 
     it("reverts when sender is not authorized", async () => {
@@ -61,17 +63,17 @@ describe("Registry", () => {
 
     it("increments id for each registration", async () => {      
       await expect(registry.connect(signer1).register(delegate1.address, 'foo'))
-        .to.emit(registry, "DSNPRegistryUpdate").withArgs(1, delegate1.address, 'foo');
+        .to.emit(registry, "DSNPRegistryUpdate").withArgs(firstId, delegate1.address, 'foo');
       await expect(registry.connect(signer2).register(delegate2.address, 'bar'))
-        .to.emit(registry, "DSNPRegistryUpdate").withArgs(2, delegate2.address, 'bar');
+        .to.emit(registry, "DSNPRegistryUpdate").withArgs(firstId+1, delegate2.address, 'bar');
       await expect(registry.connect(signer3).register(delegate3.address, 'baz'))
-        .to.emit(registry, "DSNPRegistryUpdate").withArgs(3, delegate3.address, 'baz');
+        .to.emit(registry, "DSNPRegistryUpdate").withArgs(firstId+2, delegate3.address, 'baz');
     });
 
     it("stores correct id", async () => {      
       await registry.connect(signer1).register(delegate1.address, handle);
       const result = await registry.resolveHandleToId(handle)
-      expect(result).to.equal(1);
+      expect(result).to.equal(1000);
     });
 
     it("stores correct address", async () => {      
@@ -96,7 +98,7 @@ describe("Registry", () => {
       await registry.connect(signer1).register(newDelegate1.address, handle)
       await expect(registry.connect(signer1).changeAddress(newDelegate1.address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(1, newDelegate1.address, handle);
+        .withArgs(firstId, newDelegate1.address, handle);
     });
 
     it("reverts when handle does not exist", async () => {
@@ -138,7 +140,7 @@ describe("Registry", () => {
       expect(addr).to.equal(delegate1.address);
 
       const id = await registry.resolveHandleToId(newHandle)
-      expect(id).to.equal(1);
+      expect(id).to.equal(firstId);
     });
 
     it("emits a DSNPRegistryUpdate event", async () => {
@@ -146,7 +148,7 @@ describe("Registry", () => {
 
       await expect(registry.connect(signer1).changeHandle(handle, newHandle))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(1, delegate1.address, newHandle);
+        .withArgs(firstId, delegate1.address, newHandle);
     });
 
     it("clears old handle and frees it for registration", async () => {
@@ -161,7 +163,7 @@ describe("Registry", () => {
 
       await expect(registry.connect(signer2).register(delegate2.address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(2, delegate2.address, handle);
+        .withArgs(firstId + 1, delegate2.address, handle);
     });
 
     it("reverts when sender is not authorized", async () => {
