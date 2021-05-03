@@ -1,5 +1,5 @@
-//SPDX-License-Identifier: Unlicense
-pragma solidity ^0.7.3;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity >= 0.8.0 <0.9.0;
 
 interface IAnnounce {
     event DSNPBatch(bytes32 hash, string dsnpUri);

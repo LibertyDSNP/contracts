@@ -1,5 +1,5 @@
-//SPDX-License-Identifier: Unlicensed
-pragma solidity ^0.7.3;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity >= 0.8.0 <0.9.0;
 
 import "./IDelegate.sol";
 
@@ -12,7 +12,7 @@ import "./IDelegate.sol";
 contract TestDelegate is IDelegation {
     address private delegateAddr;
 
-    constructor(address addr) public {
+    constructor(address addr) {
         delegateAddr = addr;
     }
 

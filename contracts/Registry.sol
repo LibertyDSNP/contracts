@@ -1,9 +1,8 @@
-//SPDX-License-Identifier: Unlicensed
-pragma solidity ^0.7.3;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity >= 0.8.0 <0.9.0;
 
 import "./IRegistry.sol";
 import "./IDelegate.sol";
-import "hardhat/console.sol";
 
 contract Registry is IRegistry {
     uint64 private idSequence = 1;
