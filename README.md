@@ -30,8 +30,8 @@ To maintain types, it is suggested to use [TypeChain](https://github.com/ethereu
 
 1. Follow the [install directions](https://github.com/ethereum-ts/Typechain#installation) and add the correct package for your toolset.
 2. Add a postinstall or other step to run typechain:
-  - `"postinstall": "typechain --target=(ethers-v5|web3-v1|other...) node_modules/@unfinishedlabs/contracts/**/*.json --outDir ./types/typechain"`
-  - `"build:web3types": "typechain --target=web3-v1 node_modules/@unfinishedlabs/contracts/**/*.json --outDir ./types/typechain"`
+  - `"postinstall": "typechain --target=(ethers-v5|web3-v1|other...) ./node_modules/@unfinishedlabs/contracts/**/*.json --outDir ./types/typechain"`
+  - `"build:web3types": "typechain --target=web3-v1 ./node_modules/@unfinishedlabs/contracts/**/*.json --outDir ./types/typechain"`
 3. Make sure your `--outDir` is in [tsconfig typeRoots](https://www.typescriptlang.org/tsconfig#typeRoots).
 4. Use the types:
 ```typescript
@@ -41,8 +41,8 @@ import { Announcer } from "./types/typechain/Announcer";
 import { abi as announcerABI } from "@unfinishedlabs/contracts/abi/Announcer.json";
 
 const getAnnouncerContract = (contractAddress: string) => {
-  // web3 requires the type cast
-  return new web3.eth.Contract(announcerABI, contractAddress) as Announcer;
+  // web3 requires the type casts
+  return (new web3.eth.Contract(announcerABI, contractAddress) as any) as Announcer;
 }
 ```
 
