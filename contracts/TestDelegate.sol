@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity >= 0.8.0 <0.9.0;
+pragma solidity >=0.8.0 <0.9.0;
 
 import "./ERC165.sol";
 import "./IDelegation.sol";
@@ -17,11 +17,22 @@ contract TestDelegate is ERC165, IDelegation {
         delegateAddr = addr;
     }
 
-    function delegate(address newDelegate, Role role, Permission permission) external override {
+    function delegate(
+        address newDelegate,
+        Role role,
+        Permission permission
+    ) external override {
         require(false, "Not implemented");
     }
 
-    function delegateByEIP712Sig(bytes32 r, bytes32 s, uint32 v, address newDelegate, Role role, Permission permission) external override {
+    function delegateByEIP712Sig(
+        bytes32 r,
+        bytes32 s,
+        uint32 v,
+        address newDelegate,
+        Role role,
+        Permission permission
+    ) external override {
         require(false, "Not implemented");
     }
 
@@ -29,18 +40,29 @@ contract TestDelegate is ERC165, IDelegation {
         require(false, "Not implemented");
     }
 
-    function delegateRemoveByEIP712Sig(bytes32 r, bytes32 s, uint32 v, address addr, uint64 endBlock) external override {
+    function delegateRemoveByEIP712Sig(
+        bytes32 r,
+        bytes32 s,
+        uint32 v,
+        address addr,
+        uint64 endBlock
+    ) external override {
         require(false, "Not implemented");
     }
 
-    function isAuthorizedTo(address addr, Permission permission, uint256 blockNumber) external override view returns (bool) {
+    function isAuthorizedTo(
+        address addr,
+        Permission permission,
+        uint256 blockNumber
+    ) external view override returns (bool) {
         return addr == delegateAddr;
     }
 
-    function supportsInterface(bytes4 interfaceID) external override pure returns (bool) {
-        return 
-            interfaceID == this.supportsInterface.selector ||   // ERC165
-            interfaceID == this.delegate.selector ^             // IDelegation
+    function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
+        return
+            interfaceID == this.supportsInterface.selector || // ERC165
+            interfaceID == // IDelegation
+            this.delegate.selector ^
                 this.delegateByEIP712Sig.selector ^
                 this.delegateRemove.selector ^
                 this.delegateRemoveByEIP712Sig.selector ^
@@ -54,8 +76,7 @@ contract TestDelegate is ERC165, IDelegation {
  * interface.
  */
 contract TestERC165 is ERC165 {
-    function supportsInterface(bytes4 interfaceID) external override pure returns (bool) {
-        return 
-            interfaceID == this.supportsInterface.selector;   // ERC165
+    function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
+        return interfaceID == this.supportsInterface.selector; // ERC165
     }
 }

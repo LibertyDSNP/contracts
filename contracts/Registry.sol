@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity >= 0.8.0 <0.9.0;
+pragma solidity >=0.8.0 <0.9.0;
 
 import "./IRegistry.sol";
 import "./IDelegation.sol";
@@ -7,20 +7,21 @@ import "./ERC165.sol";
 
 contract Registry is IRegistry {
     uint64 private idSequence = 1000;
-    bytes4 private constant IDELEGATION_SIG = IDelegation.delegate.selector ^
-                IDelegation.delegateByEIP712Sig.selector ^
-                IDelegation.delegateRemove.selector ^
-                IDelegation.delegateRemoveByEIP712Sig.selector ^
-                IDelegation.isAuthorizedTo.selector;
-      
-    // Id and identity contract address to be mapped to handle 
+    bytes4 private constant IDELEGATION_SIG =
+        IDelegation.delegate.selector ^
+            IDelegation.delegateByEIP712Sig.selector ^
+            IDelegation.delegateRemove.selector ^
+            IDelegation.delegateRemoveByEIP712Sig.selector ^
+            IDelegation.isAuthorizedTo.selector;
+
+    // Id and identity contract address to be mapped to handle
     struct Registration {
         uint64 id;
         address identityAddress;
     }
-  
+
     // Map from handle to registration
-    mapping (string => Registration) registrations;
+    mapping(string => Registration) private registrations;
 
     /**
      * @dev Register a new DSNP Id
@@ -47,7 +48,10 @@ contract Registry is IRegistry {
         // Interactions
 
         ERC165 delegation = ERC165(addr);
-        require(delegation.supportsInterface(IDELEGATION_SIG), "contract does not support IDelegation interface");
+        require(
+            delegation.supportsInterface(IDELEGATION_SIG),
+            "contract does not support IDelegation interface"
+        );
 
         return reg.id;
     }
@@ -60,7 +64,7 @@ contract Registry is IRegistry {
     function changeAddress(address newAddr, string calldata handle) external override {
         // Checks
 
-         Registration storage reg = registrations[handle];
+        Registration storage reg = registrations[handle];
         require(reg.id != 0, "Handle does not exist");
 
         // Effects
@@ -73,11 +77,21 @@ contract Registry is IRegistry {
 
         // ensure old delegation contract authorizes this change
         IDelegation oldAuth = IDelegation(oldAddr);
-        require(oldAuth.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
- 
+        require(
+            oldAuth.isAuthorizedTo(
+                msg.sender,
+                IDelegation.Permission.OWNERSHIP_TRANSFER,
+                block.number
+            ),
+            "Access denied"
+        );
+
         // ensure new delegation contract implements IDelegation interface
         ERC165 delegation = ERC165(newAddr);
-        require(delegation.supportsInterface(IDELEGATION_SIG), "contract does not support IDelegation interface");
+        require(
+            delegation.supportsInterface(IDELEGATION_SIG),
+            "contract does not support IDelegation interface"
+        );
     }
 
     /**
@@ -109,16 +123,28 @@ contract Registry is IRegistry {
         // Interactions
 
         IDelegation authorization = IDelegation(oldReg.identityAddress);
-        require(authorization.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
+        require(
+            authorization.isAuthorizedTo(
+                msg.sender,
+                IDelegation.Permission.OWNERSHIP_TRANSFER,
+                block.number
+            ),
+            "Access denied"
+        );
     }
 
     /**
      * @dev Resolve a handle to a contract address
      * @param handle The handle to resolve
-     * 
+     *
      * @return Address of the contract
      */
-    function resolveHandleToAddress(string calldata handle) external view override returns (address) {
+    function resolveHandleToAddress(string calldata handle)
+        external
+        view
+        override
+        returns (address)
+    {
         Registration memory reg = registrations[handle];
 
         require(reg.id != 0, "Handle does not exist");
@@ -129,10 +155,10 @@ contract Registry is IRegistry {
     /**
      * @dev Resolve a handle to a DSNP Id
      * @param handle The handle to resolve
-     * 
+     *
      * @return DSNP Id
      */
-    function resolveHandleToId(string calldata handle)  external view override returns (uint64) {
+    function resolveHandleToId(string calldata handle) external view override returns (uint64) {
         Registration memory reg = registrations[handle];
 
         require(reg.id != 0, "Handle does not exist");
