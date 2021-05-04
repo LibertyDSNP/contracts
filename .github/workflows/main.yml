@@ -36,5 +36,5 @@ jobs:
       - name: Test
         run: npm run test
 
-      -name: CodeChecks (Gas)
+      - name: CodeChecks (Gas)
         run: npx codechecks
