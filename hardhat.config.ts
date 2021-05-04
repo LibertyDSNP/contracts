@@ -2,7 +2,7 @@ require("dotenv").config();
 import { HardhatUserConfig } from "hardhat/src/types/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
-import "hardhat-gas-reporter"
+import "hardhat-gas-reporter";
 
 const getAccounts = (network: string) => {
   const accounts = {
