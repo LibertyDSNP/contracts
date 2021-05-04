@@ -17,6 +17,7 @@ contract TestDelegate is ERC165, IDelegation {
         delegateAddr = addr;
     }
 
+    /* solhint-disable */
     function delegate(
         address newDelegate,
         Role role,
@@ -57,6 +58,8 @@ contract TestDelegate is ERC165, IDelegation {
     ) external view override returns (bool) {
         return addr == delegateAddr;
     }
+
+    /* solhint-enable */
 
     function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
         return
