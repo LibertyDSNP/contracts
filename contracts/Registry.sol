@@ -2,10 +2,16 @@
 pragma solidity >= 0.8.0 <0.9.0;
 
 import "./IRegistry.sol";
-import "./IDelegate.sol";
+import "./IDelegation.sol";
+import "./ERC165.sol";
 
 contract Registry is IRegistry {
     uint64 private idSequence = 1000;
+    bytes4 private constant IDELEGATION_SIG = IDelegation.delegate.selector ^
+                IDelegation.delegateByEIP712Sig.selector ^
+                IDelegation.delegateRemove.selector ^
+                IDelegation.delegateRemoveByEIP712Sig.selector ^
+                IDelegation.isAuthorizedTo.selector;
       
     // Id and identity contract address to be mapped to handle 
     struct Registration {
@@ -40,8 +46,8 @@ contract Registry is IRegistry {
 
         // Interactions
 
-        IDelegation authorization = IDelegation(addr);
-        require(authorization.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
+        ERC165 delegation = ERC165(addr);
+        require(delegation.supportsInterface(IDELEGATION_SIG), "contract does not support IDelegation interface");
 
         return reg.id;
     }
@@ -69,9 +75,9 @@ contract Registry is IRegistry {
         IDelegation oldAuth = IDelegation(oldAddr);
         require(oldAuth.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
  
-        // ensure new delegation contract authorizes this change
-        IDelegation newAuth = IDelegation(newAddr);
-        require(newAuth.isAuthorizedTo(msg.sender, IDelegation.Permission.OWNERSHIP_TRANSFER, block.number), "Access denied");
+        // ensure new delegation contract implements IDelegation interface
+        ERC165 delegation = ERC165(newAddr);
+        require(delegation.supportsInterface(IDELEGATION_SIG), "contract does not support IDelegation interface");
     }
 
     /**

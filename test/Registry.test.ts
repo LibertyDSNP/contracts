@@ -6,7 +6,7 @@ import { generateHexString } from "@unfinishedlabs/test-generators"
 describe("Registry", () => {
   const handle = "flarp";
   let signer1, signer2, signer3;
-  let delegate1, delegate2, delegate3, newDelegate1;
+  let delegate1, delegate2, delegate3, newDelegate1, nonDelegate;
 
   let registry;
 
@@ -34,6 +34,10 @@ describe("Registry", () => {
 
     delegate3 = await TestDelegate.deploy(signer3.address);
     await delegate3.deployed();
+
+    const TestERC165 = await ethers.getContractFactory("TestERC165");
+    nonDelegate = await TestERC165.deploy();
+    await nonDelegate.deployed();
   });
 
   describe("register", () => {
@@ -44,9 +48,9 @@ describe("Registry", () => {
         .withArgs(firstId, delegate1.address, handle);
     });
 
-    it("reverts when sender is not authorized", async () => {
-      await expect(registry.connect(signer2).register(delegate1.address, handle))
-        .to.be.revertedWith("Access denied");
+    it("reverts when addr is not a delegation contract", async () => {
+      await expect(registry.connect(signer2).register(nonDelegate.address, handle))
+        .to.be.revertedWith("contract does not support IDelegation interface");
     })
 
     it("reverts when contract does not exist", async () => {
@@ -113,11 +117,11 @@ describe("Registry", () => {
         .to.be.revertedWith("Access denied");
     })
 
-    it("reverts when sender is not authorized in new contract", async () => {
+    it("reverts when new contract is not a delegation contract", async () => {
       await registry.connect(signer1).register(delegate1.address, handle)
 
-      await expect(registry.connect(signer1).changeAddress(delegate2.address, handle))
-        .to.be.revertedWith("Access denied");
+      await expect(registry.connect(signer1).changeAddress(nonDelegate.address, handle))
+        .to.be.revertedWith("contract does not support IDelegation interface");
     })
 
     it("reverts when new contract does not exist", async () => {
