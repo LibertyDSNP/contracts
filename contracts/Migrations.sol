@@ -1,7 +1,5 @@
-pragma solidity ^0.7.3;
-
-/// SPDX-License-Identifier: UNLICENSED
-import "hardhat/console.sol";
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity >=0.8.0 <0.9.0;
 
 contract Migrations {
     address public owner;
@@ -10,7 +8,7 @@ contract Migrations {
     // for the new contract.
     event DSNPMigration(address contractAddr, string contractName);
 
-    constructor() {
+    constructor() public {
         owner = msg.sender;
     }
 

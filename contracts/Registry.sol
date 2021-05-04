@@ -1,0 +1,168 @@
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity >=0.8.0 <0.9.0;
+
+import "./IRegistry.sol";
+import "./IDelegation.sol";
+import "./ERC165.sol";
+
+contract Registry is IRegistry {
+    uint64 private idSequence = 1000;
+    bytes4 private constant IDELEGATION_SIG =
+        IDelegation.delegate.selector ^
+            IDelegation.delegateByEIP712Sig.selector ^
+            IDelegation.delegateRemove.selector ^
+            IDelegation.delegateRemoveByEIP712Sig.selector ^
+            IDelegation.isAuthorizedTo.selector;
+
+    // Id and identity contract address to be mapped to handle
+    struct Registration {
+        uint64 id;
+        address identityAddress;
+    }
+
+    // Map from handle to registration
+    mapping(string => Registration) private registrations;
+
+    /**
+     * @dev Register a new DSNP Id
+     * @param addr Address for the new DSNP Id to point at
+     * @param handle The handle for discovery
+     * @return id of registration
+     */
+    function register(address addr, string calldata handle) external override returns (uint64) {
+        // Checks
+
+        Registration storage reg = registrations[handle];
+        require(reg.id == 0, "Handle already exists");
+
+        // Effects
+
+        // Set id to latest sequence number then increment
+        reg.id = idSequence++;
+
+        reg.identityAddress = addr;
+
+        // emit registration event
+        emit DSNPRegistryUpdate(reg.id, addr, handle);
+
+        // Interactions
+
+        ERC165 delegation = ERC165(addr);
+        require(
+            delegation.supportsInterface(IDELEGATION_SIG),
+            "contract does not support IDelegation interface"
+        );
+
+        return reg.id;
+    }
+
+    /**
+     * @dev Alter a DSNP Id resolution address
+     * @param newAddr Original or new address to resolve to
+     * @param handle The handle to modify
+     */
+    function changeAddress(address newAddr, string calldata handle) external override {
+        // Checks
+
+        Registration storage reg = registrations[handle];
+        require(reg.id != 0, "Handle does not exist");
+
+        // Effects
+
+        address oldAddr = reg.identityAddress;
+        reg.identityAddress = newAddr;
+        emit DSNPRegistryUpdate(reg.id, newAddr, handle);
+
+        // Interactions
+
+        // ensure old delegation contract authorizes this change
+        IDelegation oldAuth = IDelegation(oldAddr);
+        require(
+            oldAuth.isAuthorizedTo(
+                msg.sender,
+                IDelegation.Permission.OWNERSHIP_TRANSFER,
+                block.number
+            ),
+            "Access denied"
+        );
+
+        // ensure new delegation contract implements IDelegation interface
+        ERC165 delegation = ERC165(newAddr);
+        require(
+            delegation.supportsInterface(IDELEGATION_SIG),
+            "contract does not support IDelegation interface"
+        );
+    }
+
+    /**
+     * @dev Alter a DSNP Id handle
+     * @param oldHandle The previous handle for modification
+     * @param newHandle The new handle to use for discovery
+     */
+    function changeHandle(string calldata oldHandle, string calldata newHandle) external override {
+        // Checks
+
+        Registration storage oldReg = registrations[oldHandle];
+        require(oldReg.id != 0, "Old handle does not exist");
+
+        Registration storage newReg = registrations[newHandle];
+        require(newReg.id == 0, "New handle already exists");
+
+        // Effects
+
+        // assign to new registration
+        newReg.id = oldReg.id;
+        newReg.identityAddress = oldReg.identityAddress;
+
+        // signal that the old handle is unassigned and available
+        oldReg.id = 0;
+
+        // notify the change
+        emit DSNPRegistryUpdate(newReg.id, newReg.identityAddress, newHandle);
+
+        // Interactions
+
+        IDelegation authorization = IDelegation(oldReg.identityAddress);
+        require(
+            authorization.isAuthorizedTo(
+                msg.sender,
+                IDelegation.Permission.OWNERSHIP_TRANSFER,
+                block.number
+            ),
+            "Access denied"
+        );
+    }
+
+    /**
+     * @dev Resolve a handle to a contract address
+     * @param handle The handle to resolve
+     *
+     * @return Address of the contract
+     */
+    function resolveHandleToAddress(string calldata handle)
+        external
+        view
+        override
+        returns (address)
+    {
+        Registration memory reg = registrations[handle];
+
+        require(reg.id != 0, "Handle does not exist");
+
+        return reg.identityAddress;
+    }
+
+    /**
+     * @dev Resolve a handle to a DSNP Id
+     * @param handle The handle to resolve
+     *
+     * @return DSNP Id
+     */
+    function resolveHandleToId(string calldata handle) external view override returns (uint64) {
+        Registration memory reg = registrations[handle];
+
+        require(reg.id != 0, "Handle does not exist");
+
+        return reg.id;
+    }
+}
