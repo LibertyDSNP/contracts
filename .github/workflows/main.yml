@@ -23,8 +23,11 @@ jobs:
         with:
           node-version: '14.15.5'
 
+      - name: Check Versions
+        run: npm --version
+
       - name: Install
-        run: npm ci
+        run: npm --verbose ci
 
       - name: Lint
         run: npm run lint
