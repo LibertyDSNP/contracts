@@ -32,6 +32,7 @@ interface IRegistry {
      * @dev Register a new DSNP Id
      * @param addr Address for the new DSNP Id to point at
      * @param handle The handle for discovery
+     * @return id for new registration
      *
      * MUST reject if the handle is already in use
      * MUST emit DSNPRegistryUpdate
