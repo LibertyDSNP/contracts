@@ -255,8 +255,8 @@ describe("Registry", () => {
   });
 
   describe("changeHandle", async () => {
-     // create registration to change
-     beforeEach(async () => {
+    // create registration to change
+    beforeEach(async () => {
       await registry.connect(signer1).register(delegate1.address, handle);
     });
 
@@ -293,9 +293,9 @@ describe("Registry", () => {
     });
 
     it("reverts when handle does not exist", async () => {
-      await expect(registry.connect(signer1).changeHandle("notahandle", newHandle)).to.be.revertedWith(
-        "Old handle does not exist"
-      );
+      await expect(
+        registry.connect(signer1).changeHandle("notahandle", newHandle)
+      ).to.be.revertedWith("Old handle does not exist");
     });
 
     it("reverts when new handle already exists", async () => {
@@ -354,7 +354,7 @@ describe("Registry", () => {
       await registry.connect(signer2).changeHandleByEIP712Sig(v, r, s, message);
 
       // we must register handle again to retrieve its nonce
-      await registry.connect(signer2).register(delegate2.address, handle)
+      await registry.connect(signer2).register(delegate2.address, handle);
 
       expect(await registry.resolveHandleToNonce(handle)).to.equal(1);
     });
@@ -375,7 +375,7 @@ describe("Registry", () => {
       await registry.connect(signer2).changeHandleByEIP712Sig(v, r, s, message);
 
       // we must register handle again before we update it
-      await registry.connect(signer2).register(delegate2.address, handle)
+      await registry.connect(signer2).register(delegate2.address, handle);
 
       // create an EIP 712 handle change that should fail with nonce=0
       const message2 = { nonce: 0, oldHandle: handle, newHandle: "yetanotherhandle" };

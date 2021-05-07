@@ -309,46 +309,73 @@ contract Registry is IRegistry {
         return reg.nonce;
     }
 
+    /**
+     * @dev Recover the message signer from an AddressChange and a signature.
+     * @param v EIP-155 calculated Signature v value
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param change Change data containing nonce, handle and new address
+     * @return signer address (or some arbitrary address if signature is incorrect)
+     */
     function addressChangeSigner(
         uint8 v,
         bytes32 r,
         bytes32 s,
         AddressChange memory change
     ) internal view returns (address) {
-        bytes memory encoded =
-            abi.encode(
-                ADDRESS_CHANGE_TYPEHASH,
-                change.nonce,
-                change.addr,
-                keccak256(bytes(change.handle))
+        bytes32 typeHash =
+            keccak256(
+                abi.encode(
+                    ADDRESS_CHANGE_TYPEHASH,
+                    change.nonce,
+                    change.addr,
+                    keccak256(bytes(change.handle))
+                )
             );
-        return signerFromHashStruct(v, r, s, encoded);
+        return signerFromHashStruct(v, r, s, typeHash);
     }
 
+    /**
+     * @dev Recover the message signer from a HandleChange and a signature.
+     * @param v EIP-155 calculated Signature v value
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param change Change data containing nonce, old handle and new handle
+     * @return signer address (or some arbitrary address if signature is incorrect)
+     */
     function handleChangeSigner(
         uint8 v,
         bytes32 r,
         bytes32 s,
         HandleChange memory change
     ) internal view returns (address) {
-        bytes memory encoded =
-            abi.encode(
-                HANDLE_CHANGE_TYPEHASH,
-                change.nonce,
-                keccak256(bytes(change.oldHandle)),
-                keccak256(bytes(change.newHandle))
+        bytes32 typeHash =
+            keccak256(
+                abi.encode(
+                    HANDLE_CHANGE_TYPEHASH,
+                    change.nonce,
+                    keccak256(bytes(change.oldHandle)),
+                    keccak256(bytes(change.newHandle))
+                )
             );
-        return signerFromHashStruct(v, r, s, encoded);
+        return signerFromHashStruct(v, r, s, typeHash);
     }
 
+    /**
+     * @dev Recover the message signer from a signature and a type hash for this domain.
+     * @param v EIP-155 calculated Signature v value
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param hashStruct Hash of encoded type struct
+     * @return signer address (or some arbitrary address if signature is incorrect)
+     */
     function signerFromHashStruct(
         uint8 v,
         bytes32 r,
         bytes32 s,
-        bytes memory hashStruct
+        bytes32 hashStruct
     ) internal view returns (address) {
-        bytes32 digest =
-            keccak256(abi.encodePacked("\x19\x01", domainSeparatorHash, keccak256(hashStruct)));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparatorHash, hashStruct));
         return ecrecover(digest, v, r, s);
     }
 }
