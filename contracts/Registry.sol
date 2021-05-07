@@ -144,7 +144,6 @@ contract Registry is IRegistry {
         require(reg.id != 0, "Handle does not exist");
         require(reg.nonce == change.nonce, "Nonces do not match");
 
-
         address signer = addressChangeSigner(v, r, s, change);
 
         // Effects
@@ -228,6 +227,7 @@ contract Registry is IRegistry {
 
         Registration storage oldReg = registrations[change.oldHandle];
         require(oldReg.id != 0, "Old handle does not exist");
+        require(oldReg.nonce == change.nonce, "Nonces do not match");
 
         Registration storage newReg = registrations[change.newHandle];
         require(newReg.id == 0, "New handle already exists");
@@ -242,6 +242,9 @@ contract Registry is IRegistry {
 
         // signal that the old handle is unassigned and available
         oldReg.id = 0;
+
+        // increment nonce so this transaction cannot be replayed
+        oldReg.nonce++;
 
         // notify the change
         emit DSNPRegistryUpdate(newReg.id, newReg.identityAddress, change.newHandle);
@@ -312,12 +315,13 @@ contract Registry is IRegistry {
         bytes32 s,
         AddressChange memory change
     ) internal view returns (address) {
-        bytes memory encoded = abi.encode(
-            ADDRESS_CHANGE_TYPEHASH,
-            change.nonce,
-            change.addr,
-            keccak256(bytes(change.handle))
-        );
+        bytes memory encoded =
+            abi.encode(
+                ADDRESS_CHANGE_TYPEHASH,
+                change.nonce,
+                change.addr,
+                keccak256(bytes(change.handle))
+            );
         return signerFromHashStruct(v, r, s, encoded);
     }
 
@@ -327,12 +331,13 @@ contract Registry is IRegistry {
         bytes32 s,
         HandleChange memory change
     ) internal view returns (address) {
-        bytes memory encoded = abi.encode(
-            HANDLE_CHANGE_TYPEHASH,
-            change.nonce,
-            keccak256(bytes(change.oldHandle)),
-            keccak256(bytes(change.newHandle))
-        );
+        bytes memory encoded =
+            abi.encode(
+                HANDLE_CHANGE_TYPEHASH,
+                change.nonce,
+                keccak256(bytes(change.oldHandle)),
+                keccak256(bytes(change.newHandle))
+            );
         return signerFromHashStruct(v, r, s, encoded);
     }
 
@@ -342,9 +347,8 @@ contract Registry is IRegistry {
         bytes32 s,
         bytes memory hashStruct
     ) internal view returns (address) {
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", domainSeparatorHash, keccak256(hashStruct))
-        );
+        bytes32 digest =
+            keccak256(abi.encodePacked("\x19\x01", domainSeparatorHash, keccak256(hashStruct)));
         return ecrecover(digest, v, r, s);
     }
 }
