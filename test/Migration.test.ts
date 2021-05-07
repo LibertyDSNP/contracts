@@ -1,19 +1,12 @@
 import { ethers, waffle } from "hardhat";
 import chai from "chai";
-import * as fs from "fs";
 import { Contract, Event, EventFilter } from "ethers";
 const { expect } = chai;
 import { keccak256 as keccak256Sha3 } from "js-sha3";
+import { parseABI } from "./helpers/abi";
 
 const keccak256 = (data) => "0x" + keccak256Sha3(data);
 const topic = keccak256("DSNPMigration(bytes32,string)");
-
-const parsedABI = (abiPath) => {
-  expect(fs.existsSync(abiPath)).to.eq(true);
-  const fileContent = fs.readFileSync(abiPath);
-  const parsed = JSON.parse(fileContent.toString());
-  return parsed.abi;
-};
 
 async function setup() {
   const Contract = await ethers.getContractFactory("Migrations", {});
@@ -37,7 +30,7 @@ describe("Migrate", function () {
     const contract = await setup();
 
     const abiPath = "./artifacts/contracts/Migrations.sol/Migrations.json";
-    let parsedabi = parsedABI(abiPath);
+    let parsedabi = parseABI(abiPath);
     const abiJSONStr = JSON.stringify(parsedabi);
     expect(abiJSONStr).not.to.eq("{}");
     expect(await contract.upgraded(contract.address, contractName))

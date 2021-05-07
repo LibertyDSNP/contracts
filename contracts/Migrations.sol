@@ -8,7 +8,7 @@ contract Migrations {
     // for the new contract.
     event DSNPMigration(address contractAddr, string contractName);
 
-    constructor() public {
+    constructor() {
         owner = msg.sender;
     }
 
