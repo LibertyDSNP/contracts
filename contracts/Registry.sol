@@ -29,7 +29,7 @@ contract Registry is IRegistry {
     bytes32 private constant SALT =
         0x01597239a39b73c524db27009bfe992afd78e195ca64846a6fa0ce65ce37b2df;
 
-    bytes32 private domainSeparatorHash;
+    bytes32 private immutable domainSeparatorHash;
 
     // Id and identity contract address to be mapped to handle
     struct Registration {
@@ -301,7 +301,7 @@ contract Registry is IRegistry {
      *
      * @return nonce value for handle
      */
-    function resolveHandleToNonce(string calldata handle) external view override returns (uint64) {
+    function resolveHandleToNonce(string calldata handle) external view override returns (uint32) {
         Registration memory reg = registrations[handle];
 
         require(reg.id != 0, "Handle does not exist");

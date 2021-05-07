@@ -123,5 +123,5 @@ interface IRegistry {
      *
      * @return nonce value for handle
      */
-    function resolveHandleToNonce(string calldata handle) external view returns (uint64);
+    function resolveHandleToNonce(string calldata handle) external view returns (uint32);
 }
