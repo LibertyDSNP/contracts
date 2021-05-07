@@ -33,7 +33,7 @@ contract Registry is IRegistry {
 
     // Id and identity contract address to be mapped to handle
     struct Registration {
-        uint64 nonce;
+        uint32 nonce;
         uint64 id;
         address identityAddress;
     }
