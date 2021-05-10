@@ -347,7 +347,7 @@ contract Registry is IRegistry {
         uint8 v,
         bytes32 r,
         bytes32 s,
-        HandleChange memory change
+        HandleChange calldata change
     ) internal view returns (address) {
         bytes32 typeHash =
             keccak256(
