@@ -8,6 +8,18 @@ pragma solidity >=0.8.0 <0.9.0;
  *   mapping(string => [id, address]) internal handleToIdAndAddress;
  */
 interface IRegistry {
+    struct AddressChange {
+        uint32 nonce;
+        address addr;
+        string handle;
+    }
+
+    struct HandleChange {
+        uint32 nonce;
+        string oldHandle;
+        string newHandle;
+    }
+
     /**
      * @dev Log when a resolution address is changed
      * @param id The DSNP Id
@@ -20,11 +32,11 @@ interface IRegistry {
      * @dev Register a new DSNP Id
      * @param addr Address for the new DSNP Id to point at
      * @param handle The handle for discovery
+     * @return id for new registration
      *
      * MUST reject if the handle is already in use
-     * MUST be called by someone who is authorized on the contract
-     *      via `IDelegation(addr).isAuthorizedTo(msg.sender, Permission.OWNERSHIP_TRANSFER, block.number)`
      * MUST emit DSNPRegistryUpdate
+     * MUST check that addr implements IDelegation interface
      */
     function register(address addr, string calldata handle) external returns (uint64);
 
@@ -36,8 +48,28 @@ interface IRegistry {
      * MUST be called by someone who is authorized on the contract
      *      via `IDelegation(oldAddr).isAuthorizedTo(oldAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
      * MUST emit DSNPRegistryUpdate
+     * MUST check that addr implements IDelegation interface
      */
     function changeAddress(address newAddr, string calldata handle) external;
+
+    /**
+     * @dev Alter a DSNP Id resolution address by EIP-712 Signature
+     * @param v EIP-155 calculated Signature v value
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param change Change data containing nonce, new address and handle
+     *
+     * MUST be signed by someone who is authorized on the contract
+     *      via `IDelegation(oldAddr).isAuthorizedTo(ecrecovedAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
+     * MUST check that newAddr implements IDelegation interface
+     * MUST emit DSNPRegistryUpdate
+     */
+    function changeAddressByEIP712Sig(
+        uint8 v,
+        bytes32 r,
+        bytes32 s,
+        AddressChange calldata change
+    ) external;
 
     /**
      * @dev Alter a DSNP Id handle
@@ -50,6 +82,25 @@ interface IRegistry {
      * MUST emit DSNPRegistryUpdate
      */
     function changeHandle(string calldata oldHandle, string calldata newHandle) external;
+
+    /**
+     * @dev Alter a DSNP Id handle by EIP-712 Signature
+     * @param v EIP-155 calculated Signature v value
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param change Change data containing nonce, old handle and new handle
+     *
+     * MUST NOT allow a registration of a handle that is already in use
+     * MUST be signed by someone who is authorized on the contract
+     *      via `IDelegation(handle -> addr).isAuthorizedTo(ecrecovedAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
+     * MUST emit DSNPRegistryUpdate
+     */
+    function changeHandleByEIP712Sig(
+        uint8 v,
+        bytes32 r,
+        bytes32 s,
+        HandleChange calldata change
+    ) external;
 
     /**
      * @dev Resolve a handle to a contract address
@@ -66,4 +117,12 @@ interface IRegistry {
      * @return DSNP Id
      */
     function resolveHandleToId(string calldata handle) external view returns (uint64);
+
+    /**
+     * @dev Resolve a handle to nonce
+     * @param handle The handle to resolve
+     *
+     * @return nonce value for handle
+     */
+    function resolveHandleToNonce(string calldata handle) external view returns (uint32);
 }
