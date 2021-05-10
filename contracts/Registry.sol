@@ -321,7 +321,7 @@ contract Registry is IRegistry {
         uint8 v,
         bytes32 r,
         bytes32 s,
-        AddressChange memory change
+        AddressChange calldata change
     ) internal view returns (address) {
         bytes32 typeHash =
             keccak256(
