@@ -6,13 +6,15 @@ import "./ERC165.sol";
 
 contract Identity is IDelegation, ERC165 {
     bytes32 private constant ownerPosition = keccak256("org.zeppelinos.identity.owner");
-    uint32[] rolePermissions = new uint32[](3);
-
-    constructor() public {
-        rolePermissions[uint(Role.NONE)] = 0;
-        rolePermissions[uint(Role.OWNER)] =  (1 << uint32(Permission.ANNOUNCE)) | (1 << uint32(Permission.OWNERSHIP_TRANSFER)) |  (1 << uint32(Permission.DELEGATE_ADD)) | (1 << uint32(Permission.DELEGATE_REMOVE));
-        rolePermissions[uint(Role.ANNOUNCER)] = 1 << uint32(Permission.ANNOUNCE);
-    }
+    /**
+     * @dev We can store the role to permissions data currently via bitwise
+     * uint256(...[32 bit ANNOUNCER permissions][32 bit OWNER permissions][32 bit NONE permissions])
+     */
+    uint256 constant rolePermissions =
+    // Role.OWNER Mask
+    ((1 << uint32(Permission.ANNOUNCE)) | (1 << uint32(Permission.OWNERSHIP_TRANSFER)) |  (1 << uint32(Permission.DELEGATE_ADD)) | (1 << uint32(Permission.DELEGATE_REMOVE))) << (uint32(Role.OWNER) * 32)
+    // Role.ANNOUCNER Mask
+    | (1 << uint32(Permission.ANNOUNCE)) << (uint32(Role.ANNOUNCER) * 32);
 
 //    function storeIdentityOwner (address idenityOwner) public {
 //        bytes32 position = ownerposition;
@@ -28,9 +30,14 @@ contract Identity is IDelegation, ERC165 {
 //        }
 //    }
 
+    function doesRoleHavePermission(Role role, Permission permission) public pure returns (bool) {
+        // bitwise (possible) AND (check mask)
+        return rolePermissions & ((1 << uint32(permission))) << (uint32(role) * 32) > 0x0;
+    }
 
     function isAuthorizedTo(address addr, Permission permission, uint256 blockNumber)external override view returns (bool) {
-        return (rolePermissions[uint(Role.ANNOUNCER)] == (1 << uint32(permission))) ? true : false;
+//        return _doesRoleHavePermission(Role.ANNOUNCER, )
+        return true; //(rolePermissions[uint(Role.ANNOUNCER)] == (1 << uint32(permission))) ? true : false;
     }
 
     function delegate(address newDelegate, Role role,  Permission permission) external override {
