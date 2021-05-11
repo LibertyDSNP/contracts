@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.8.0 <0.9.0;
 
-import "./ERC165.sol";
-import "./IDelegation.sol";
+import "../ERC165.sol";
+import "../IDelegation.sol";
 
 /**
  * This is a fake identity contract that satisfies the IDelegation interface.
@@ -18,11 +18,7 @@ contract TestDelegate is ERC165, IDelegation {
     }
 
     /* solhint-disable */
-    function delegate(
-        address newDelegate,
-        Role role,
-        Permission permission
-    ) external override {
+    function delegate(address newDelegate, Role role) external override {
         require(false, "Not implemented");
     }
 
@@ -31,8 +27,7 @@ contract TestDelegate is ERC165, IDelegation {
         bytes32 s,
         uint32 v,
         address newDelegate,
-        Role role,
-        Permission permission
+        Role role
     ) external override {
         require(false, "Not implemented");
     }
@@ -63,13 +58,7 @@ contract TestDelegate is ERC165, IDelegation {
 
     function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
         return
-            interfaceID == this.supportsInterface.selector || // ERC165
-            interfaceID == // IDelegation
-            this.delegate.selector ^
-                this.delegateByEIP712Sig.selector ^
-                this.delegateRemove.selector ^
-                this.delegateRemoveByEIP712Sig.selector ^
-                this.isAuthorizedTo.selector;
+            interfaceID == type(ERC165).interfaceId || interfaceID == type(IDelegation).interfaceId;
     }
 }
 
@@ -80,6 +69,6 @@ contract TestDelegate is ERC165, IDelegation {
  */
 contract TestERC165 is ERC165 {
     function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
-        return interfaceID == this.supportsInterface.selector; // ERC165
+        return interfaceID == type(ERC165).interfaceId;
     }
 }

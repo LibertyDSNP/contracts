@@ -8,6 +8,8 @@ interface IDelegation {
     /**
      * @dev Enumerated Permissions
      *      Roles have different permissions
+     *      APPEND ONLY
+     *      Also apply update to DSNPEnums.ts
      */
     enum Permission {
         /**
@@ -35,7 +37,8 @@ interface IDelegation {
     /**
      * @dev Enumerated Roles
      *      Roles have different permissions
-     *      For example:
+     *      APPEND ONLY
+     *      Also apply update to DSNPEnums.ts
      */
     enum Role {
         /**
@@ -71,17 +74,13 @@ interface IDelegation {
     /**
      * @dev Add or change permissions for delegate
      * @param newDelegate Address to delegate new permissions to
-     * @param permission Permission level
+     * @param role Role for the delegate
      *
      * MUST be called by owner or other delegate with permissions
      * MUST consider newDelegate to be valid from the beginning to time
      * MUST emit DSNPAddDelegate
      */
-    function delegate(
-        address newDelegate,
-        Role role,
-        Permission permission
-    ) external;
+    function delegate(address newDelegate, Role role) external;
 
     /**
      * @dev Add or change permissions for delegate by EIP-712 signature
@@ -89,7 +88,7 @@ interface IDelegation {
      * @param s ECDSA Signature s value
      * @param v EIP-155 calculated Signature v value
      * @param newDelegate Address to delegate new permissions to
-     * @param permission Permission level
+     * @param role Role for the delegate
      *
      * MUST be signed by owner or other delegate with permissions (implementation specific)
      * MUST consider newDelegate to be valid from the beginning to time
@@ -100,8 +99,7 @@ interface IDelegation {
         bytes32 s,
         uint32 v,
         address newDelegate,
-        Role role,
-        Permission permission
+        Role role
     ) external;
 
     /**
