@@ -2,11 +2,16 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 interface IAnnounce {
-    event DSNPBatch(bytes32 hash, string dsnpUri);
+    struct Announcement {
+        int16 dsnpType;
+        string uri;
+        bytes32 hash;
+    }
+
+    event DSNPBatch(int16 indexed dsnpType, bytes32 dsnpHash, string dsnpUri);
 
     /**
-     * @param hash Keccak256 hash of the content found at uri
-     * @param dsnpUri string URL, ipfs, etc... to the content
+     * @param announcements Array of announcement struct
      */
-    function batch(bytes32 hash, string calldata dsnpUri) external;
+    function batch(Announcement[] calldata announcements) external;
 }

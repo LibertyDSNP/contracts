@@ -5,10 +5,12 @@ import "./IAnnounce.sol";
 
 contract Announcer is IAnnounce {
     /**
-     * @param hash Keccak256 hash of the content found at uri
-     * @param dsnpUri string URL, ipfs, etc... to the content
+     * @param announcements array of struct announcements
      */
-    function batch(bytes32 hash, string calldata dsnpUri) external override {
-        emit DSNPBatch(hash, dsnpUri);
+    function batch(Announcement[] calldata announcements) external override {
+        require(announcements.length < 100, "gas consumption is high");
+        for (uint256 i = 0; i < announcements.length; i++) {
+            emit DSNPBatch(announcements[i].dsnpType, announcements[i].hash, announcements[i].uri);
+        }
     }
 }
