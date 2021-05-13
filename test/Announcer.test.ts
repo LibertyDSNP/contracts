@@ -14,9 +14,15 @@ describe("annoucement", () => {
     });
 
     it("batch emits a DSNPBatch event", async () => {
-      await expect(announcer.batch(hash, "http://x.com"))
+      await expect(announcer.batch([{ hash: hash, uri: "http://x.com", dsnpType: 1 }]))
         .to.emit(announcer, "DSNPBatch")
-        .withArgs(hash, "http://x.com");
+        .withArgs(1, hash, "http://x.com");
+    });
+
+    it("reverts when batch size is greater or equal to 100", async () => {
+      const batch = Array(100).fill({ hash: hash, uri: "http://x.com", dsnpType: 1 });
+
+      await expect(announcer.batch(batch)).to.be.revertedWith("gas consumption is high");
     });
   });
 });
