@@ -5,11 +5,17 @@ import "./IDelegation.sol";
 import "./ERC165.sol";
 
 contract Identity is IDelegation, ERC165 {
+    /**
+     * @dev Used for storing an address's delegation data
+     */
     struct AddressDelegation {
         Role role;
         uint64 endBlock;
     }
 
+    /**
+     * @dev Storage for the delegation data
+     */
     struct DelegationStorage {
         bool initialized;
         mapping(address => AddressDelegation) delegations;
