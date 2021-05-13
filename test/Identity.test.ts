@@ -125,9 +125,16 @@ describe("Identity", () => {
   });
 
   describe("delegate", () => {
-    it("success with DELEGATE_ADD", () => {
-      expect(identity.connect(signer).delegate(notAuthorized.address, DelegationRole.ANNOUNCER)).to
+    it("success with DELEGATE_ADD", async () => {
+      await expect(identity.connect(signer).delegate(notAuthorized.address, DelegationRole.ANNOUNCER)).to
         .not.be.reverted;
+      expect(
+        await identity.isAuthorizedTo(
+          notAuthorized.address,
+          DelegationPermission.ANNOUNCE,
+          0x0
+        )
+      ).to.be.true;
     });
     it("rejects without DELEGATE_ADD", () => {
       expect(
@@ -143,7 +150,7 @@ describe("Identity", () => {
           DelegationPermission.OWNERSHIP_TRANSFER,
           0x0
         )
-      );
+      ).to.be.true;
     });
     it("rejects for the NONE role", async () => {
       await expect(
