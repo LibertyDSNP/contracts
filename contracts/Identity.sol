@@ -39,11 +39,20 @@ contract Identity is IDelegation, ERC165 {
         _;
     }
 
+    /**
+     * @dev Constructor is only for use if the contract is being used directly
+     *      Construct with address(0x0) for logic contracts
+     * @param owner Address to be set as the owner
+     */
     constructor(address owner) {
         _setDelegateRole(owner, Role.OWNER);
         _delegationData().initialized = true;
     }
 
+    /**
+     * @dev Initialize for use as a proxy's logic contract
+     * @param owner Address to be set as the owner
+     */
     function initialize(address owner) external {
         // Checks
         require(_delegationData().initialized == false, "Already initialized");
@@ -52,6 +61,11 @@ contract Identity is IDelegation, ERC165 {
         _delegationData().initialized = true;
     }
 
+    /**
+     * @dev Return the data storage slot
+     *      Slot used to prevent memory collisions for proxy contracts
+     * @return delegation storage
+     */
     function _delegationData() internal pure returns (DelegationStorage storage ds) {
         bytes32 position = DELEGATION_STORAGE_SLOT;
         assembly {
@@ -59,11 +73,24 @@ contract Identity is IDelegation, ERC165 {
         }
     }
 
+    /**
+     * @dev Check to see if the role has a particular permission
+     * @param role The Role to test against
+     * @param permission The Permission to test with the role
+     * @return true if the role is assigned the given permission
+     */
     function doesRoleHavePermission(Role role, Permission permission) public pure returns (bool) {
         // bitwise (possible) AND (check single permission mask)
         return rolePermissions & (((1 << uint32(permission))) << (uint32(role) * 32)) > 0x0;
     }
 
+    /**
+     * @dev Internal check authorization method
+     * @param addr The address to inspect permissions of
+     * @param permission The permission to check
+     * @param blockNumber Block number to check at. Use 0x0 for endless permissions.
+     * @return true if the address has the permission at the given block
+     */
     function _checkAuthorization(
         address addr,
         Permission permission,
@@ -77,6 +104,15 @@ contract Identity is IDelegation, ERC165 {
             doesRoleHavePermission(delegation.role, permission);
     }
 
+    /**
+     * @dev Checks to see if address is authorized with the given permission
+     * @param addr Address that is used to test
+     * @param permission Level of permission check. See Permission for details
+     * @param blockNumber Check for authorization at a particular block number, 0x0 reserved for endless permissions
+     * @return boolean
+     *
+     * @dev Return MAY change as deauthorization can revoke past messages
+     */
     function isAuthorizedTo(
         address addr,
         Permission permission,
@@ -85,6 +121,11 @@ contract Identity is IDelegation, ERC165 {
         return _checkAuthorization(addr, permission, blockNumber);
     }
 
+    /**
+    * @dev Assigns a delegate role
+    * @param addr The address to assign the given role to
+    * @param role The role to assign
+    */
     function _setDelegateRole(address addr, Role role) internal {
         AddressDelegation storage delegation = _delegationData().delegations[addr];
         delegation.role = role;
@@ -92,6 +133,15 @@ contract Identity is IDelegation, ERC165 {
         emit DSNPAddDelegate(addr, role);
     }
 
+    /**
+     * @dev Add or change permissions for delegate
+     * @param newDelegate Address to delegate new permissions to
+     * @param role Role for the delegate
+     *
+     * MUST be called by owner or other delegate with permissions
+     * MUST consider newDelegate to be valid from the beginning to time
+     * MUST emit DSNPAddDelegate
+     */
     function delegate(address newDelegate, Role role) external override {
         // Checks
         require(
@@ -104,6 +154,18 @@ contract Identity is IDelegation, ERC165 {
         _setDelegateRole(newDelegate, role);
     }
 
+    /**
+     * @dev Add or change permissions for delegate by EIP-712 signature
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param v EIP-155 calculated Signature v value
+     * @param newDelegate Address to delegate new permissions to
+     * @param role Role for the delegate
+     *
+     * MUST be signed by owner or other delegate with permissions (implementation specific)
+     * MUST consider newDelegate to be valid from the beginning to time
+     * MUST emit DSNPAddDelegate
+     */
     function delegateByEIP712Sig(
         bytes32 r,
         bytes32 s,
@@ -126,12 +188,26 @@ contract Identity is IDelegation, ERC165 {
         _setDelegateRole(newDelegate, role);
     }
 
+    /**
+    * @dev Removes a delegate role at a given point
+    * @param addr The address to revoke the given role to
+    * @param endBlock The exclusive block to end permissions on (0x1 for always)
+    */
     function _setDelegateEnd(address addr, uint64 endBlock) internal {
         AddressDelegation storage delegation = _delegationData().delegations[addr];
         delegation.endBlock = endBlock;
         emit DSNPRemoveDelegate(addr, endBlock);
     }
 
+    /**
+     * @dev Remove Delegate
+     * @param addr Address to remove all permissions from
+     * @param endBlock Block number to consider the permissions terminated (MUST be > 0x0).
+     *
+     * MUST be called by the delegate, owner, or other delegate with permissions
+     * MUST store endBlock for response in isAuthorizedToAnnounce (exclusive)
+     * MUST emit DSNPRemoveDelegate
+     */
     function delegateRemove(address addr, uint64 endBlock) external override {
         require(
             // Always allow self removal
@@ -145,6 +221,18 @@ contract Identity is IDelegation, ERC165 {
         _setDelegateEnd(addr, endBlock);
     }
 
+    /**
+     * @dev Remove Delegate By EIP-712 Signature
+     * @param addr Address to remove all permissions from
+     * @param endBlock Block number to consider the permissions terminated (MUST be > 0x0).
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param v EIP-155 calculated Signature v value
+     *
+     * MUST be signed by the delegate, owner, or other delegate with permissions
+     * MUST store endBlock for response in isAuthorizedToAnnounce (exclusive)
+     * MUST emit DSNPRemoveDelegate
+     */
     function delegateRemoveByEIP712Sig(
         bytes32 r,
         bytes32 s,
@@ -165,6 +253,14 @@ contract Identity is IDelegation, ERC165 {
         _setDelegateEnd(addr, endBlock);
     }
 
+    /**
+     * @notice Query if a contract implements an interface
+     * @param interfaceID The interface identifier, as specified in ERC-165
+     * @dev Interface identification is specified in ERC-165. This function
+     *  uses less than 30,000 gas.
+     * @return `true` if the contract implements `interfaceID` and
+     *  `interfaceID` is not 0xffffffff, `false` otherwise
+     */
     function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
         return
             interfaceID == type(ERC165).interfaceId || interfaceID == type(IDelegation).interfaceId;
