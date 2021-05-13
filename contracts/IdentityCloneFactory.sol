@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./IIdentityCloneFactory.sol";
+import "./Identity.sol";
 
 contract IdentityCloneFactory is IIdentityCloneFactory {
     using Clones for address;
@@ -17,6 +18,7 @@ contract IdentityCloneFactory is IIdentityCloneFactory {
      */
     function createCloneProxy(address logic) public override returns (address) {
         address instance = logic.clone();
+        Identity(instance).initialize(msg.sender);
         emit ProxyCreated(instance);
         return instance;
     }
@@ -33,6 +35,7 @@ contract IdentityCloneFactory is IIdentityCloneFactory {
     function createCloneProxyFor(address logic, address owner) external override returns (address) {
         address instance = logic.clone();
         emit ProxyCreated(instance);
+        Identity(instance).initialize(owner);
         return instance;
     }
 }
