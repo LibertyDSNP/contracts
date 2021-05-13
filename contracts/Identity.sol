@@ -71,7 +71,9 @@ contract Identity is IDelegation, ERC165 {
     ) internal view returns (bool) {
         AddressDelegation storage delegation = _delegationData().delegations[addr];
         return
-            (delegation.endBlock == 0 || delegation.endBlock <= blockNumber) &&
+            // endBlock check, 0x0 reserved for endless permissions
+            (delegation.endBlock == 0 || (delegation.endBlock > blockNumber && blockNumber != 0)) &&
+            // Permission check
             doesRoleHavePermission(delegation.role, permission);
     }
 
@@ -87,7 +89,7 @@ contract Identity is IDelegation, ERC165 {
         AddressDelegation storage delegation = _delegationData().delegations[addr];
         delegation.role = role;
         delegation.endBlock = 0x0;
-        emit DSNPAddDelegate(msg.sender, role);
+        emit DSNPAddDelegate(addr, role);
     }
 
     function delegate(address newDelegate, Role role) external override {
@@ -127,15 +129,17 @@ contract Identity is IDelegation, ERC165 {
     function _setDelegateEnd(address addr, uint64 endBlock) internal {
         AddressDelegation storage delegation = _delegationData().delegations[addr];
         delegation.endBlock = endBlock;
-        emit DSNPRemoveDelegate(msg.sender, endBlock);
+        emit DSNPRemoveDelegate(addr, endBlock);
     }
 
     function delegateRemove(address addr, uint64 endBlock) external override {
         require(
+            // Always allow self removal
             msg.sender == addr ||
                 _checkAuthorization(msg.sender, Permission.DELEGATE_REMOVE, block.number),
             "Sender does not have the DELEGATE_REMOVE permission."
         );
+        require(endBlock > 0x0, "endBlock 0x0 reserved for endless permissions");
 
         // Effects
         _setDelegateEnd(addr, endBlock);

@@ -79,16 +79,18 @@ describe("Identity", () => {
       });
     });
 
-    describe("previously authorized", async () => {
+    describe("previously authorized endBlock 0x100", async () => {
       // permission, result
       const tests = [
-        { p: DelegationPermission.NONE, x: false, b: 99 },
-        { p: DelegationPermission.ANNOUNCE, x: false, b: 101 },
+        { p: DelegationPermission.ANNOUNCE, x: false, b: 0x0 },
+        { p: DelegationPermission.ANNOUNCE, x: true, b: 0x99 },
+        { p: DelegationPermission.ANNOUNCE, x: false, b: 0x100 },
+        { p: DelegationPermission.ANNOUNCE, x: false, b: 0x101 },
       ];
       tests.forEach((tc) => {
         it(`Permission ${DelegationPermission[tc.p]} should ${
           tc.x ? "" : "not"
-        } be allowed`, async () => {
+        } be allowed for block ${tc.b}`, async () => {
           identity.delegateRemove(announcerOnly.address, 0x100);
           const result = await identity.isAuthorizedTo(announcerOnly.address, tc.p, tc.b);
           expect(result).to.equal(tc.x);
@@ -126,24 +128,32 @@ describe("Identity", () => {
 
   describe("delegate", () => {
     it("success with DELEGATE_ADD", async () => {
-      await expect(identity.connect(signer).delegate(notAuthorized.address, DelegationRole.ANNOUNCER)).to
-        .not.be.reverted;
+      await expect(
+        identity.connect(signer).delegate(notAuthorized.address, DelegationRole.ANNOUNCER)
+      ).to.not.be.reverted;
       expect(
-        await identity.isAuthorizedTo(
-          notAuthorized.address,
-          DelegationPermission.ANNOUNCE,
-          0x0
-        )
+        await identity.isAuthorizedTo(notAuthorized.address, DelegationPermission.ANNOUNCE, 0x0)
       ).to.be.true;
     });
+
+    it("emits DSNPAddDelegate on success", async () => {
+      await expect(
+        identity.connect(signer).delegate(notAuthorized.address, DelegationRole.ANNOUNCER)
+      )
+        .to.emit(identity, "DSNPAddDelegate")
+        .withArgs(notAuthorized.address, DelegationRole.ANNOUNCER);
+    });
+
     it("rejects without DELEGATE_ADD", () => {
       expect(
         identity.connect(announcerOnly).delegate(notAuthorized.address, DelegationRole.ANNOUNCER)
       ).to.be.reverted;
     });
+
     it("set different role", async () => {
-      await expect(identity.connect(authOwner).delegate(announcerOnly.address, DelegationRole.OWNER)).to
-        .not.be.reverted;
+      await expect(
+        identity.connect(authOwner).delegate(announcerOnly.address, DelegationRole.OWNER)
+      ).to.not.be.reverted;
       expect(
         await identity.isAuthorizedTo(
           announcerOnly.address,
@@ -152,15 +162,61 @@ describe("Identity", () => {
         )
       ).to.be.true;
     });
+
     it("rejects for the NONE role", async () => {
       await expect(
         identity.connect(authOwner).delegate(notAuthorized.address, DelegationRole.NONE)
       ).to.be.revertedWith("Role.NONE not allowed. Use delegateRemove.");
     });
+
     it("rejects setting to a non-existing role", async () => {
-      await expect(
-        identity.connect(authOwner).delegate(notAuthorized.address, 0x3)
-      ).to.be.reverted;
+      await expect(identity.connect(authOwner).delegate(notAuthorized.address, 0x3)).to.be.reverted;
+    });
+  });
+
+  describe("delegateRemove", () => {
+    it("allows an address to remove themselves without DELEGATE_REMOVE", async () => {
+      const addr = announcerOnly.address;
+      // Has permission now
+      expect(await identity.isAuthorizedTo(addr, DelegationPermission.ANNOUNCE, 0x0)).to.be.true;
+
+      // Does not have the remove permission
+      expect(await identity.isAuthorizedTo(addr, DelegationPermission.DELEGATE_REMOVE, 0x0)).to.be
+        .false;
+
+      // Remove permission
+      await expect(identity.connect(announcerOnly).delegateRemove(addr, 0x5)).to.not.be.reverted;
+
+      // Test before endBlock
+      expect(await identity.isAuthorizedTo(addr, DelegationPermission.ANNOUNCE, 0x6)).to.be.false;
+      // Test after endBlock
+      expect(await identity.isAuthorizedTo(addr, DelegationPermission.ANNOUNCE, 0x4)).to.be.true;
+    });
+
+    it("emits DSNPRemoveDelegate on success", async () => {
+      await expect(identity.connect(announcerOnly).delegateRemove(announcerOnly.address, 0x5))
+        .to.emit(identity, "DSNPRemoveDelegate")
+        .withArgs(announcerOnly.address, 0x5);
+    });
+
+    it("success with DELEGATE_REMOVE", async () => {
+      await expect(identity.connect(authOwner).delegateRemove(announcerOnly.address, 0x1))
+        .to.emit(identity, "DSNPRemoveDelegate")
+        .withArgs(announcerOnly.address, 0x1).and.to.not.be.reverted;
+
+      expect(
+        await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)
+      ).to.be.false;
+    });
+
+    it("rejects without DELEGATE_REMOVE", () => {
+      expect(identity.connect(announcerOnly).delegateRemove(authOwner.address, 0x1)).to.be.reverted;
+    });
+
+    it("rejects block 0x0", () => {
+      expect(
+        identity.connect(authOwner).delegateRemove(announcerOnly.address, 0x0)
+      ).to.be.revertedWith("endBlock 0x0 reserved for endless permissions");
     });
   });
 
