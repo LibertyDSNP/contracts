@@ -7,12 +7,6 @@ import "./ERC165.sol";
 
 contract Registry is IRegistry {
     uint64 private idSequence = 1000;
-    bytes4 private constant IDELEGATION_SIG =
-        IDelegation.delegate.selector ^
-            IDelegation.delegateByEIP712Sig.selector ^
-            IDelegation.delegateRemove.selector ^
-            IDelegation.delegateRemoveByEIP712Sig.selector ^
-            IDelegation.isAuthorizedTo.selector;
 
     string private constant ADDRESS_CHANGE_TYPE =
         "AddressChange(uint32 nonce,address addr,string handle)";
@@ -80,7 +74,7 @@ contract Registry is IRegistry {
 
         ERC165 delegation = ERC165(addr);
         require(
-            delegation.supportsInterface(IDELEGATION_SIG),
+            delegation.supportsInterface(type(IDelegation).interfaceId),
             "contract does not support IDelegation interface"
         );
 
@@ -120,7 +114,7 @@ contract Registry is IRegistry {
         // ensure new delegation contract implements IDelegation interface
         ERC165 delegation = ERC165(newAddr);
         require(
-            delegation.supportsInterface(IDELEGATION_SIG),
+            delegation.supportsInterface(type(IDelegation).interfaceId),
             "contract does not support IDelegation interface"
         );
     }
@@ -166,7 +160,7 @@ contract Registry is IRegistry {
         // ensure new delegation contract implements IDelegation interface
         ERC165 delegation = ERC165(change.addr);
         require(
-            delegation.supportsInterface(IDELEGATION_SIG),
+            delegation.supportsInterface(type(IDelegation).interfaceId),
             "contract does not support IDelegation interface"
         );
     }

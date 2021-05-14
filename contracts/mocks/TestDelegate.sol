@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.8.0 <0.9.0;
 
-import "./ERC165.sol";
-import "./IDelegation.sol";
+import "../ERC165.sol";
+import "../IDelegation.sol";
 
 /**
  * This is a fake identity contract that satisfies the IDelegation interface.
@@ -17,22 +17,15 @@ contract TestDelegate is ERC165, IDelegation {
         delegateAddr = addr;
     }
 
-    /* solhint-disable */
-    function delegate(
-        address newDelegate,
-        Role role,
-        Permission permission
-    ) external override {
+    function delegate(address newDelegate, Role role) external override {
         require(false, "Not implemented");
     }
 
     function delegateByEIP712Sig(
+        uint8 v,
         bytes32 r,
         bytes32 s,
-        uint32 v,
-        address newDelegate,
-        Role role,
-        Permission permission
+        DelegateAdd calldata change
     ) external override {
         require(false, "Not implemented");
     }
@@ -42,11 +35,10 @@ contract TestDelegate is ERC165, IDelegation {
     }
 
     function delegateRemoveByEIP712Sig(
+        uint8 v,
         bytes32 r,
         bytes32 s,
-        uint32 v,
-        address addr,
-        uint64 endBlock
+        DelegateRemove calldata change
     ) external override {
         require(false, "Not implemented");
     }
@@ -59,17 +51,14 @@ contract TestDelegate is ERC165, IDelegation {
         return addr == delegateAddr;
     }
 
-    /* solhint-enable */
+    function getNonceForDelegate(address addr) external view override returns (uint32) {
+        require(false, "Not implemented");
+        return 0;
+    }
 
     function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
         return
-            interfaceID == this.supportsInterface.selector || // ERC165
-            interfaceID == // IDelegation
-            this.delegate.selector ^
-                this.delegateByEIP712Sig.selector ^
-                this.delegateRemove.selector ^
-                this.delegateRemoveByEIP712Sig.selector ^
-                this.isAuthorizedTo.selector;
+            interfaceID == type(ERC165).interfaceId || interfaceID == type(IDelegation).interfaceId;
     }
 }
 
@@ -80,6 +69,6 @@ contract TestDelegate is ERC165, IDelegation {
  */
 contract TestERC165 is ERC165 {
     function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
-        return interfaceID == this.supportsInterface.selector; // ERC165
+        return interfaceID == type(ERC165).interfaceId;
     }
 }

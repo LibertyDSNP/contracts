@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import chai from "chai";
 const { expect } = chai;
 
-describe("annoucement", () => {
+describe("announcement", () => {
   const hash = ethers.utils.keccak256("0x");
   let announcer;
 
