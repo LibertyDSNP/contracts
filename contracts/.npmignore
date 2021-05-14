@@ -1,0 +1,2 @@
+# Don't include mocks and testing contracts in the package
+mocks/
