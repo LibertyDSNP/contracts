@@ -247,6 +247,12 @@ describe("Identity", () => {
         identity.connect(authOwner).delegateRemove(announcerOnly.address, 0x0)
       ).to.be.revertedWith("endBlock 0x0 reserved for endless permissions");
     });
+
+    it("rejects removing a non-authorized address", async () => {
+      expect(
+        identity.connect(authOwner).delegateRemove(neverAuthorized.address, 0x1)
+      ).to.be.revertedWith("endBlock 0x0 reserved for endless permissions");
+    });
   });
 
   describe("initialization", () => {
@@ -300,7 +306,6 @@ describe("Identity", () => {
         delegateAddr: notAuthorized.address,
         role: DelegationRole.ANNOUNCER,
       };
-      console.log("notAuthorized", notAuthorized.address);
       const { v, r, s } = await signEIP712(
         authOwner,
         identityDomain,
@@ -315,7 +320,7 @@ describe("Identity", () => {
         .be.true;
     });
 
-    it("emits a DSNPRegistryUpdate event", async () => {
+    it("emits a DSNPAddDelegate event", async () => {
       const message = {
         nonce: 0,
         delegateAddr: notAuthorized.address,
@@ -443,6 +448,170 @@ describe("Identity", () => {
 
       await expect(
         identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)
+      ).to.be.reverted;
+    });
+  });
+
+  describe("delegateRemoveByEIP712Sig", () => {
+    it("success with DELEGATE_REMOVE ", async () => {
+      const message = {
+        nonce: 1,
+        delegateAddr: announcerOnly.address,
+        endBlock: 0x1,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateRemoveChangeTypes,
+        message
+      );
+
+      await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)).to.not
+        .be.reverted;
+
+      expect(await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)).to
+        .be.false;
+    });
+
+    it("emits a DSNPRemoveDelegate event", async () => {
+      const message = {
+        nonce: 1,
+        delegateAddr: announcerOnly.address,
+        endBlock: 0x1,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateRemoveChangeTypes,
+        message
+      );
+
+      await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message))
+        .to.emit(identity, "DSNPRemoveDelegate")
+        .withArgs(announcerOnly.address, 0x1);
+    });
+
+    it("success for self removal ", async () => {
+      const message = {
+        nonce: 1,
+        delegateAddr: announcerOnly.address,
+        endBlock: 0x1,
+      };
+      const { v, r, s } = await signEIP712(
+        announcerOnly,
+        identityDomain,
+        delegateRemoveChangeTypes,
+        message
+      );
+
+      await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)).to.not
+        .be.reverted;
+
+      expect(await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)).to
+        .be.false;
+    });
+
+    it("updates nonce", async () => {
+      const message = {
+        nonce: 1,
+        delegateAddr: announcerOnly.address,
+        endBlock: 0x1,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateRemoveChangeTypes,
+        message
+      );
+
+      await identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message);
+
+      expect(await identity.getNonceForDelegate(announcerOnly.address)).to.equal(2);
+    });
+
+    it("rejects when nonce is too high", async () => {
+      const message = {
+        nonce: 2,
+        delegateAddr: announcerOnly.address,
+        endBlock: 0x1,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateRemoveChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
+      ).to.be.revertedWith("Nonces do not match");
+    });
+
+    it("rejects when nonce is too low", async () => {
+      const message = {
+        nonce: 0,
+        delegateAddr: announcerOnly.address,
+        endBlock: 0x1,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateRemoveChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
+      ).to.be.revertedWith("Nonces do not match");
+    });
+
+    it("reverts when sender is not authorized", async () => {
+      const message = {
+        nonce: 1,
+        delegateAddr: announcerOnly.address,
+        endBlock: 0x1,
+      };
+      const { v, r, s } = await signEIP712(
+        notAuthorized,
+        identityDomain,
+        delegateRemoveChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
+      ).to.be.revertedWith("Signer does not have the DELEGATE_REMOVE permission");
+    });
+
+    it("rejects for endBlock 0x0", async () => {
+      const message = {
+        nonce: 1,
+        delegateAddr: announcerOnly.address,
+        endBlock: 0x0,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateRemoveChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
+      ).to.be.revertedWith("endBlock 0x0 reserved for endless permissions");
+    });
+
+    it("rejects removing a non-authorized address", async () => {
+      const message = { nonce: 1, delegateAddr: announcerOnly.address, endBlock: 0x10 };
+      const { v, r, s } = await signEIP712(
+        notAuthorized,
+        identityDomain,
+        delegateRemoveChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
       ).to.be.reverted;
     });
   });

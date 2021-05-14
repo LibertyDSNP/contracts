@@ -226,7 +226,7 @@ contract Identity is IDelegation, ERC165 {
             // Always allow self removal
             msg.sender == addr ||
                 _checkAuthorization(msg.sender, Permission.DELEGATE_REMOVE, block.number),
-            "Sender does not have the DELEGATE_REMOVE permission."
+            "Sender does not have the DELEGATE_REMOVE permission"
         );
         require(endBlock > 0x0, "endBlock 0x0 reserved for endless permissions");
 
@@ -257,9 +257,10 @@ contract Identity is IDelegation, ERC165 {
         require(
             signer == change.delegateAddr ||
                 _checkAuthorization(signer, Permission.DELEGATE_REMOVE, block.number),
-            "Sender does not have the DELEGATE_REMOVE permission."
+            "Signer does not have the DELEGATE_REMOVE permission"
         );
         require(_delegationData().delegations[change.delegateAddr].nonce == change.nonce, "Nonces do not match");
+        require(change.endBlock > 0x0, "endBlock 0x0 reserved for endless permissions");
 
         // Effects
         _setDelegateEnd(change.delegateAddr, change.endBlock);
