@@ -5,6 +5,19 @@ pragma solidity >=0.8.0 <0.9.0;
  * @dev DSNP Identity Interface for managing delegates
  */
 interface IDelegation {
+
+    struct DelegateAdd {
+        uint32 nonce;
+        address delegateAddr;
+        Role role;
+    }
+
+    struct DelegateRemove {
+        uint32 nonce;
+        address delegateAddr;
+        uint64 endBlock;
+    }
+
     /**
      * @dev Enumerated Permissions
      *      Roles have different permissions
@@ -84,22 +97,20 @@ interface IDelegation {
 
     /**
      * @dev Add or change permissions for delegate by EIP-712 signature
+     * @param v EIP-155 calculated Signature v value
      * @param r ECDSA Signature r value
      * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
-     * @param newDelegate Address to delegate new permissions to
-     * @param role Role for the delegate
+     * @param change Change data containing new delegate address, role, and nonce
      *
      * MUST be signed by owner or other delegate with permissions (implementation specific)
      * MUST consider newDelegate to be valid from the beginning to time
      * MUST emit DSNPAddDelegate
      */
     function delegateByEIP712Sig(
+        uint8 v,
         bytes32 r,
         bytes32 s,
-        uint32 v,
-        address newDelegate,
-        Role role
+        DelegateAdd calldata change
     ) external;
 
     /**
@@ -115,22 +126,20 @@ interface IDelegation {
 
     /**
      * @dev Remove Delegate By EIP-712 Signature
-     * @param addr Address to remove all permissions from
-     * @param endBlock Block number to consider the permissions terminated (MUST be > 0x0).
+     * @param v EIP-155 calculated Signature v value
      * @param r ECDSA Signature r value
      * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
+     * @param change Change data containing new delegate address, endBlock, and nonce
      *
      * MUST be signed by the delegate, owner, or other delegate with permissions
      * MUST store endBlock for response in isAuthorizedToAnnounce
      * MUST emit DSNPRemoveDelegate
      */
     function delegateRemoveByEIP712Sig(
+        uint8 v,
         bytes32 r,
         bytes32 s,
-        uint32 v,
-        address addr,
-        uint64 endBlock
+        DelegateRemove calldata change
     ) external;
 
     /**
@@ -147,4 +156,12 @@ interface IDelegation {
         Permission permission,
         uint256 blockNumber
     ) external view returns (bool);
+
+    /**
+     * @dev Get a delegate's nonce
+     * @param addr The delegate's address to get the nonce for
+     *
+     * @return nonce value for delegate
+     */
+    function getNonceForDelegate(address addr) external view returns (uint32);
 }

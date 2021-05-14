@@ -17,17 +17,15 @@ contract TestDelegate is ERC165, IDelegation {
         delegateAddr = addr;
     }
 
-    /* solhint-disable */
     function delegate(address newDelegate, Role role) external override {
         require(false, "Not implemented");
     }
 
     function delegateByEIP712Sig(
+        uint8 v,
         bytes32 r,
         bytes32 s,
-        uint32 v,
-        address newDelegate,
-        Role role
+        DelegateAdd calldata change
     ) external override {
         require(false, "Not implemented");
     }
@@ -37,11 +35,10 @@ contract TestDelegate is ERC165, IDelegation {
     }
 
     function delegateRemoveByEIP712Sig(
+        uint8 v,
         bytes32 r,
         bytes32 s,
-        uint32 v,
-        address addr,
-        uint64 endBlock
+        DelegateRemove calldata change
     ) external override {
         require(false, "Not implemented");
     }
@@ -54,7 +51,10 @@ contract TestDelegate is ERC165, IDelegation {
         return addr == delegateAddr;
     }
 
-    /* solhint-enable */
+    function getNonceForDelegate(address addr) external view override returns (uint32) {
+        require(false, "Not implemented");
+        return 0;
+    }
 
     function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
         return
