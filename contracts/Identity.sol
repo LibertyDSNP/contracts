@@ -11,18 +11,35 @@ contract Identity is IDelegation, ERC165 {
     struct AddressDelegation {
         Role role;
         uint64 endBlock;
+        uint32 nonce;
     }
 
     /**
      * @dev Storage for the delegation data
      */
     struct DelegationStorage {
+        bytes32 domainSeparatorHash;
         bool initialized;
         mapping(address => AddressDelegation) delegations;
     }
 
     bytes32 private constant DELEGATION_STORAGE_SLOT =
         bytes32(uint256(keccak256("dsnp.org.delegations")) - 1);
+
+    string private constant DELEGATE_ADD_TYPE =
+        "DelegateAdd(uint32 nonce,address delegateAddr,uint8 role)";
+    bytes32 private constant DELEGATE_ADD_TYPEHASH = keccak256(abi.encodePacked(DELEGATE_ADD_TYPE));
+    string private constant DELEGATE_REMOVE_TYPE =
+        "DelegateRemove(uint32 nonce,address delegateAddr,uint64 endBlock)";
+    bytes32 private constant DELEGATE_REMOVE_TYPEHASH =
+        keccak256(abi.encodePacked(DELEGATE_REMOVE_TYPE));
+
+    string private constant EIP712_DOMAIN =
+        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)";
+    bytes32 private constant EIP712_DOMAIN_TYPEHASH = keccak256(abi.encodePacked(EIP712_DOMAIN));
+
+    bytes32 private constant SALT =
+        0xa0bec69846cdcc8c1ba1eb93be1c5728385a9e26062a73e238b1beda189ac4c9;
 
     /**
      * @dev We can store the role to permissions data currently via bitwise
@@ -51,8 +68,7 @@ contract Identity is IDelegation, ERC165 {
      * @param owner Address to be set as the owner
      */
     constructor(address owner) {
-        _setDelegateRole(owner, Role.OWNER);
-        _delegationData().initialized = true;
+        _init(owner);
     }
 
     /**
@@ -63,14 +79,28 @@ contract Identity is IDelegation, ERC165 {
         // Checks
         require(_delegationData().initialized == false, "Already initialized");
         // Effects
+        _init(owner);
+    }
+
+    function _init(address owner) private {
         _setDelegateRole(owner, Role.OWNER);
         _delegationData().initialized = true;
+        _delegationData().domainSeparatorHash = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                keccak256("Identity"),
+                keccak256("1"),
+                block.chainid,
+                address(this),
+                SALT
+            )
+        );
     }
 
     /**
      * @dev Return the data storage slot
      *      Slot used to prevent memory collisions for proxy contracts
-     * @return delegation storage
+     * @return ds delegation storage
      */
     function _delegationData() internal pure returns (DelegationStorage storage ds) {
         bytes32 position = DELEGATION_STORAGE_SLOT;
@@ -128,18 +158,6 @@ contract Identity is IDelegation, ERC165 {
     }
 
     /**
-    * @dev Assigns a delegate role
-    * @param addr The address to assign the given role to
-    * @param role The role to assign
-    */
-    function _setDelegateRole(address addr, Role role) internal {
-        AddressDelegation storage delegation = _delegationData().delegations[addr];
-        delegation.role = role;
-        delegation.endBlock = 0x0;
-        emit DSNPAddDelegate(addr, role);
-    }
-
-    /**
      * @dev Add or change permissions for delegate
      * @param newDelegate Address to delegate new permissions to
      * @param role Role for the delegate
@@ -162,47 +180,35 @@ contract Identity is IDelegation, ERC165 {
 
     /**
      * @dev Add or change permissions for delegate by EIP-712 signature
+     * @param v EIP-155 calculated Signature v value
      * @param r ECDSA Signature r value
      * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
-     * @param newDelegate Address to delegate new permissions to
-     * @param role Role for the delegate
+     * @param change Change data containing new delegate address, role, and nonce
      *
      * MUST be signed by owner or other delegate with permissions (implementation specific)
      * MUST consider newDelegate to be valid from the beginning to time
      * MUST emit DSNPAddDelegate
      */
     function delegateByEIP712Sig(
+        uint8 v,
         bytes32 r,
         bytes32 s,
-        uint32 v,
-        address newDelegate,
-        Role role
+        DelegateAdd calldata change
     ) external override {
         // Get Signer
-        address signer;
+        address signer = delegateAddSigner(v, r, s, change);
 
         // Checks
         require(
             _checkAuthorization(signer, Permission.DELEGATE_ADD, block.number),
             "Signer does not have the DELEGATE_ADD permission."
         );
-        require(role != Role.NONE, "Role.NONE not allowed. Use delegateRemove.");
-        require(role <= Role.ANNOUNCER, "Unknown Role");
+        require(change.role != Role.NONE, "Role.NONE not allowed. Use delegateRemove.");
+        require(change.role <= Role.ANNOUNCER, "Unknown Role");
+        require(_delegationData().delegations[change.delegateAddr].nonce == change.nonce, "Nonces do not match");
 
         // Effects
-        _setDelegateRole(newDelegate, role);
-    }
-
-    /**
-    * @dev Removes a delegate role at a given point
-    * @param addr The address to revoke the given role to
-    * @param endBlock The exclusive block to end permissions on (0x1 for always)
-    */
-    function _setDelegateEnd(address addr, uint64 endBlock) internal {
-        AddressDelegation storage delegation = _delegationData().delegations[addr];
-        delegation.endBlock = endBlock;
-        emit DSNPRemoveDelegate(addr, endBlock);
+        _setDelegateRole(change.delegateAddr, change.role);
     }
 
     /**
@@ -215,6 +221,7 @@ contract Identity is IDelegation, ERC165 {
      * MUST emit DSNPRemoveDelegate
      */
     function delegateRemove(address addr, uint64 endBlock) external override {
+        // Checks
         require(
             // Always allow self removal
             msg.sender == addr ||
@@ -229,34 +236,43 @@ contract Identity is IDelegation, ERC165 {
 
     /**
      * @dev Remove Delegate By EIP-712 Signature
-     * @param addr Address to remove all permissions from
-     * @param endBlock Block number to consider the permissions terminated (MUST be > 0x0).
+     * @param v EIP-155 calculated Signature v value
      * @param r ECDSA Signature r value
      * @param s ECDSA Signature s value
-     * @param v EIP-155 calculated Signature v value
+     * @param change Change data containing new delegate address, endBlock, and nonce
      *
      * MUST be signed by the delegate, owner, or other delegate with permissions
      * MUST store endBlock for response in isAuthorizedToAnnounce (exclusive)
      * MUST emit DSNPRemoveDelegate
      */
     function delegateRemoveByEIP712Sig(
+        uint8 v,
         bytes32 r,
         bytes32 s,
-        uint32 v,
-        address addr,
-        uint64 endBlock
+        DelegateRemove calldata change
     ) external override {
-        require(false, "Not implemented");
         // Checks
+        address signer = delegateRemoveSigner(v, r, s, change);
 
         require(
-            msg.sender == addr ||
-                _checkAuthorization(msg.sender, Permission.DELEGATE_REMOVE, block.number),
+            signer == change.delegateAddr ||
+                _checkAuthorization(signer, Permission.DELEGATE_REMOVE, block.number),
             "Sender does not have the DELEGATE_REMOVE permission."
         );
+        require(_delegationData().delegations[change.delegateAddr].nonce == change.nonce, "Nonces do not match");
 
         // Effects
-        _setDelegateEnd(addr, endBlock);
+        _setDelegateEnd(change.delegateAddr, change.endBlock);
+    }
+
+    /**
+     * @dev Get a delegate's nonce
+     * @param addr The delegate's address to get the nonce for
+     *
+     * @return nonce value for delegate
+     */
+    function getNonceForDelegate(address addr) external view override returns (uint32) {
+        return _delegationData().delegations[addr].nonce;
     }
 
     /**
@@ -270,5 +286,98 @@ contract Identity is IDelegation, ERC165 {
     function supportsInterface(bytes4 interfaceID) external pure override returns (bool) {
         return
             interfaceID == type(ERC165).interfaceId || interfaceID == type(IDelegation).interfaceId;
+    }
+
+    /**
+     * @dev Assigns a delegate role
+     * @param addr The address to assign the given role to
+     * @param role The role to assign
+     */
+    function _setDelegateRole(address addr, Role role) internal {
+        AddressDelegation storage delegation = _delegationData().delegations[addr];
+        delegation.role = role;
+        delegation.endBlock = 0x0;
+        delegation.nonce++;
+        emit DSNPAddDelegate(addr, role);
+    }
+
+    /**
+     * @dev Removes a delegate role at a given point
+     * @param addr The address to revoke the given role to
+     * @param endBlock The exclusive block to end permissions on (0x1 for always)
+     */
+    function _setDelegateEnd(address addr, uint64 endBlock) internal {
+        AddressDelegation storage delegation = _delegationData().delegations[addr];
+        delegation.endBlock = endBlock;
+        delegation.nonce++;
+        emit DSNPRemoveDelegate(addr, endBlock);
+    }
+
+    /**
+     * @dev Recover the message signer from a DelegateAdd and a signature.
+     * @param v EIP-155 calculated Signature v value
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param change DelegateAdd data containing nonce, delegate address, new role
+     * @return signer address (or some arbitrary address if signature is incorrect)
+     */
+    function delegateAddSigner(
+        uint8 v,
+        bytes32 r,
+        bytes32 s,
+        DelegateAdd calldata change
+    ) internal view returns (address) {
+        bytes32 typeHash =
+            keccak256(
+                abi.encode(DELEGATE_ADD_TYPEHASH, change.nonce, change.delegateAddr, change.role)
+            );
+        return signerFromHashStruct(v, r, s, typeHash);
+    }
+
+    /**
+     * @dev Recover the message signer from a DelegateAdd and a signature.
+     * @param v EIP-155 calculated Signature v value
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param change DelegateRemove data containing nonce, delegate address, end block
+     * @return signer address (or some arbitrary address if signature is incorrect)
+     */
+    function delegateRemoveSigner(
+        uint8 v,
+        bytes32 r,
+        bytes32 s,
+        DelegateRemove calldata change
+    ) internal view returns (address) {
+        bytes32 typeHash =
+            keccak256(
+                abi.encode(
+                    DELEGATE_REMOVE_TYPEHASH,
+                    change.nonce,
+                    change.delegateAddr,
+                    change.endBlock
+                )
+            );
+        return signerFromHashStruct(v, r, s, typeHash);
+    }
+
+    /**
+     * @dev Recover the message signer from a signature and a type hash for this domain.
+     * @param v EIP-155 calculated Signature v value
+     * @param r ECDSA Signature r value
+     * @param s ECDSA Signature s value
+     * @param hashStruct Hash of encoded type struct
+     * @return signer address (or some arbitrary address if signature is incorrect)
+     */
+    function signerFromHashStruct(
+        uint8 v,
+        bytes32 r,
+        bytes32 s,
+        bytes32 hashStruct
+    ) internal view returns (address) {
+        bytes32 digest =
+            keccak256(
+                abi.encodePacked("\x19\x01", _delegationData().domainSeparatorHash, hashStruct)
+            );
+        return ecrecover(digest, v, r, s);
     }
 }

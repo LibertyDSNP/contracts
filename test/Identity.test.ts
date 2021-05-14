@@ -3,15 +3,42 @@ import chai from "chai";
 import { describe } from "mocha";
 import { ContractFactory } from "@ethersproject/contracts";
 import { DelegationPermission, DelegationRole } from "./DSNPEnums";
+import { signEIP712 } from "./EIP712";
+import { Contract } from "ethers";
 const { expect } = chai;
 
 describe("Identity", () => {
-  let signer, authOwner, announcerOnly, notAuthorized;
+  let signer, authOwner, announcerOnly, notAuthorized, neverAuthorized;
   let identity;
   let Identity: ContractFactory;
+  let identityDomain;
+
+  const delegateAddChangeTypes = {
+    DelegateAdd: [
+      { name: "nonce", type: "uint32" },
+      { name: "delegateAddr", type: "address" },
+      { name: "role", type: "uint8" },
+    ],
+  };
+
+  const delegateRemoveChangeTypes = {
+    DelegateRemove: [
+      { name: "nonce", type: "uint32" },
+      { name: "delegateAddr", type: "address" },
+      { name: "endBlock", type: "uint64" },
+    ],
+  };
+
+  const getIdentityDomain = async (contract: Contract) => ({
+    name: "Identity",
+    version: "1",
+    chainId: (await ethers.provider.getNetwork()).chainId,
+    verifyingContract: contract.address,
+    salt: "0xa0bec69846cdcc8c1ba1eb93be1c5728385a9e26062a73e238b1beda189ac4c9",
+  });
 
   beforeEach(async () => {
-    [signer, authOwner, announcerOnly, notAuthorized] = await ethers.getSigners();
+    [signer, authOwner, announcerOnly, notAuthorized, neverAuthorized] = await ethers.getSigners();
 
     Identity = await ethers.getContractFactory("Identity");
     identity = await Identity.deploy(signer.address);
@@ -19,6 +46,8 @@ describe("Identity", () => {
 
     await identity.delegate(authOwner.address, 0x1);
     await identity.delegate(announcerOnly.address, 0x2);
+
+    identityDomain = await getIdentityDomain(identity);
   });
 
   describe("isAuthorizedTo", () => {
@@ -261,6 +290,160 @@ describe("Identity", () => {
       await expect(identity.initialize(notAuthorized.address)).to.be.revertedWith(
         "Already initialized"
       );
+    });
+  });
+
+  describe("delegateByEIP712Sig", () => {
+    it("success with DELEGATE_ADD ", async () => {
+      const message = {
+        nonce: 0,
+        delegateAddr: notAuthorized.address,
+        role: DelegationRole.ANNOUNCER,
+      };
+      console.log("notAuthorized", notAuthorized.address);
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateAddChangeTypes,
+        message
+      );
+
+      await expect(identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)).to.not
+        .be.reverted;
+
+      expect(await identity.isAuthorizedTo(notAuthorized.address, DelegationPermission.ANNOUNCE, 0x0)).to
+        .be.true;
+    });
+
+    it("emits a DSNPRegistryUpdate event", async () => {
+      const message = {
+        nonce: 0,
+        delegateAddr: notAuthorized.address,
+        role: DelegationRole.ANNOUNCER,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateAddChangeTypes,
+        message
+      );
+
+      await expect(identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message))
+        .to.emit(identity, "DSNPAddDelegate")
+        .withArgs(notAuthorized.address, DelegationRole.ANNOUNCER);
+    });
+
+    it("updates nonce", async () => {
+      const message = {
+        nonce: 0,
+        delegateAddr: notAuthorized.address,
+        role: DelegationRole.ANNOUNCER,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateAddChangeTypes,
+        message
+      );
+
+      await identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message);
+
+      expect(await identity.getNonceForDelegate(notAuthorized.address)).to.equal(1);
+    });
+
+    it("rejects when nonce is too high", async () => {
+      const message = {
+        nonce: 1,
+        delegateAddr: notAuthorized.address,
+        role: DelegationRole.ANNOUNCER,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateAddChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)
+      ).to.be.revertedWith("Nonces do not match");
+    });
+
+    it("rejects when nonce is too low", async () => {
+      // First change to update nonce to 1
+      const message = {
+        nonce: 0,
+        delegateAddr: notAuthorized.address,
+        role: DelegationRole.ANNOUNCER,
+      };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateAddChangeTypes,
+        message
+      );
+
+      await identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message);
+
+      // create an EIP 712 handle change that should fail with nonce=0
+      const message2 = {
+        nonce: 0,
+        delegateAddr: notAuthorized.address,
+        role: DelegationRole.ANNOUNCER,
+      };
+      const { v: v2, r: r2, s: s2 } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateAddChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateByEIP712Sig(v2, r2, s2, message2)
+      ).to.be.revertedWith("Nonces do not match");
+    });
+
+    it("reverts when sender is not authorized", async () => {
+      const message = { nonce: 0, delegateAddr: announcerOnly.address, role: DelegationRole.OWNER };
+
+      const { v, r, s } = await signEIP712(
+        notAuthorized,
+        identityDomain,
+        delegateAddChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)
+      ).to.be.revertedWith("Signer does not have the DELEGATE_ADD permission");
+    });
+
+    it("rejects for the NONE role", async () => {
+      const message = { nonce: 0, delegateAddr: announcerOnly.address, role: DelegationRole.NONE };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateAddChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)
+      ).to.be.revertedWith("Role.NONE not allowed. Use delegateRemove.");
+    });
+
+    it("rejects setting to a non-existing role", async () => {
+      const message = { nonce: 0, delegateAddr: announcerOnly.address, role: 0x10 };
+      const { v, r, s } = await signEIP712(
+        authOwner,
+        identityDomain,
+        delegateAddChangeTypes,
+        message
+      );
+
+      await expect(
+        identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)
+      ).to.be.reverted;
     });
   });
 });
