@@ -45,7 +45,7 @@ contract Identity is IDelegation, ERC165 {
      * @dev We can store the role to permissions data currently via bitwise
      * uint256(...[32 bit ANNOUNCER permissions][32 bit OWNER permissions][32 bit NONE permissions])
      */
-    uint256 constant rolePermissions =
+    uint256 private constant ROLE_PERMISSIONS =
         // Role.OWNER Mask
         (((1 << uint32(Permission.ANNOUNCE)) |
             (1 << uint32(Permission.OWNERSHIP_TRANSFER)) |
@@ -104,6 +104,7 @@ contract Identity is IDelegation, ERC165 {
      */
     function _delegationData() internal pure returns (DelegationStorage storage ds) {
         bytes32 position = DELEGATION_STORAGE_SLOT;
+        /* solhint-disable no-inline-assembly */
         assembly {
             ds.slot := position
         }
@@ -117,7 +118,7 @@ contract Identity is IDelegation, ERC165 {
      */
     function doesRoleHavePermission(Role role, Permission permission) public pure returns (bool) {
         // bitwise (possible) AND (check single permission mask)
-        return rolePermissions & (((1 << uint32(permission))) << (uint32(role) * 32)) > 0x0;
+        return ROLE_PERMISSIONS & (((1 << uint32(permission))) << (uint32(role) * 32)) > 0x0;
     }
 
     /**
