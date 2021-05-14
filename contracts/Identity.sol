@@ -205,7 +205,10 @@ contract Identity is IDelegation, ERC165 {
         );
         require(change.role != Role.NONE, "Role.NONE not allowed. Use delegateRemove.");
         require(change.role <= Role.ANNOUNCER, "Unknown Role");
-        require(_delegationData().delegations[change.delegateAddr].nonce == change.nonce, "Nonces do not match");
+        require(
+            _delegationData().delegations[change.delegateAddr].nonce == change.nonce,
+            "Nonces do not match"
+        );
 
         // Effects
         _setDelegateRole(change.delegateAddr, change.role);
@@ -259,7 +262,10 @@ contract Identity is IDelegation, ERC165 {
                 _checkAuthorization(signer, Permission.DELEGATE_REMOVE, block.number),
             "Signer does not have the DELEGATE_REMOVE permission"
         );
-        require(_delegationData().delegations[change.delegateAddr].nonce == change.nonce, "Nonces do not match");
+        require(
+            _delegationData().delegations[change.delegateAddr].nonce == change.nonce,
+            "Nonces do not match"
+        );
         require(change.endBlock > 0x0, "endBlock 0x0 reserved for endless permissions");
 
         // Effects

@@ -5,7 +5,6 @@ pragma solidity >=0.8.0 <0.9.0;
  * @dev DSNP Identity Factory Interface for creating identities via [EIP 1167](https://eips.ethereum.org/EIPS/eip-1167)
  */
 interface IIdentityCloneFactory {
-
     /**
      * @dev event to log the created proxy contract address
      */

@@ -32,7 +32,11 @@ describe("IdentityCloneFactory", () => {
       const proxyAsIdentity = Identity.attach(createEvent.args.addr);
 
       // See if the proxy is used
-      const isAuthorized = await proxyAsIdentity.isAuthorizedTo(signer.address, DelegationRole.OWNER, 0x1);
+      const isAuthorized = await proxyAsIdentity.isAuthorizedTo(
+        signer.address,
+        DelegationRole.OWNER,
+        0x1
+      );
       expect(isAuthorized).to.equal(true);
 
       // Make sure it is initialized
@@ -58,10 +62,14 @@ describe("IdentityCloneFactory", () => {
       const proxyAsIdentity = Identity.attach(createEvent.args.addr);
 
       // See if the proxy is used and owned by noMoney
-      expect(await proxyAsIdentity.isAuthorizedTo(noMoney.address, DelegationRole.OWNER, 0x1)).to.equal(true);
+      expect(
+        await proxyAsIdentity.isAuthorizedTo(noMoney.address, DelegationRole.OWNER, 0x1)
+      ).to.equal(true);
 
       // See if the proxy is NOT owned by signer
-      expect(await proxyAsIdentity.isAuthorizedTo(signer.address, DelegationRole.OWNER, 0x1)).to.equal(false);
+      expect(
+        await proxyAsIdentity.isAuthorizedTo(signer.address, DelegationRole.OWNER, 0x1)
+      ).to.equal(false);
 
       // Make sure it is initialized
       expect(proxyAsIdentity.initialize("0x0000000000000000000000000000000000000000")).to.be

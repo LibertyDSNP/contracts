@@ -7,7 +7,7 @@ export enum DelegationPermission {
   ANNOUNCE = 0x1,
   OWNERSHIP_TRANSFER = 0x2,
   DELEGATE_ADD = 0x3,
-  DELEGATE_REMOVE = 0x4
+  DELEGATE_REMOVE = 0x4,
 }
 
 export enum DelegationRole {

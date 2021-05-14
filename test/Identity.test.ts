@@ -316,8 +316,9 @@ describe("Identity", () => {
       await expect(identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)).to.not
         .be.reverted;
 
-      expect(await identity.isAuthorizedTo(notAuthorized.address, DelegationPermission.ANNOUNCE, 0x0)).to
-        .be.true;
+      expect(
+        await identity.isAuthorizedTo(notAuthorized.address, DelegationPermission.ANNOUNCE, 0x0)
+      ).to.be.true;
     });
 
     it("emits a DSNPAddDelegate event", async () => {
@@ -446,9 +447,8 @@ describe("Identity", () => {
         message
       );
 
-      await expect(
-        identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)
-      ).to.be.reverted;
+      await expect(identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)).to.be
+        .reverted;
     });
   });
 
@@ -466,11 +466,12 @@ describe("Identity", () => {
         message
       );
 
-      await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)).to.not
-        .be.reverted;
+      await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)).to
+        .not.be.reverted;
 
-      expect(await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)).to
-        .be.false;
+      expect(
+        await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)
+      ).to.be.false;
     });
 
     it("emits a DSNPRemoveDelegate event", async () => {
@@ -504,11 +505,12 @@ describe("Identity", () => {
         message
       );
 
-      await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)).to.not
-        .be.reverted;
+      await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)).to
+        .not.be.reverted;
 
-      expect(await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)).to
-        .be.false;
+      expect(
+        await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)
+      ).to.be.false;
     });
 
     it("updates nonce", async () => {
@@ -610,9 +612,8 @@ describe("Identity", () => {
         message
       );
 
-      await expect(
-        identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
-      ).to.be.reverted;
+      await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)).to
+        .be.reverted;
     });
   });
 });
