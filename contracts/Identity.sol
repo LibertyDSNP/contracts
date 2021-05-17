@@ -226,13 +226,14 @@ contract Identity is IDelegation, ERC165 {
      */
     function delegateRemove(address addr, uint64 endBlock) external override {
         // Checks
-        require(
-            // Always allow self removal
-            msg.sender == addr ||
-                _checkAuthorization(msg.sender, Permission.DELEGATE_REMOVE, block.number),
-            "Sender does not have the DELEGATE_REMOVE permission"
-        );
+        require(_delegationData().delegations[addr].nonce > 0, "Never authorized");
         require(endBlock > 0x0, "endBlock 0x0 reserved for endless permissions");
+
+        // Self removal checks
+        if (!_checkAuthorization(msg.sender, Permission.DELEGATE_REMOVE, block.number)) {
+            require(endBlock <= block.number, "Cannot self-remove in the future");
+            require(msg.sender == addr, "Sender does not have the DELEGATE_REMOVE permission");
+        }
 
         // Effects
         _setDelegateEnd(addr, endBlock);
@@ -258,15 +259,19 @@ contract Identity is IDelegation, ERC165 {
         // Checks
         address signer = delegateRemoveSigner(v, r, s, change);
 
-        require(
-            signer == change.delegateAddr ||
-                _checkAuthorization(signer, Permission.DELEGATE_REMOVE, block.number),
-            "Signer does not have the DELEGATE_REMOVE permission"
-        );
+        // Self removal checks
+        if (!_checkAuthorization(signer, Permission.DELEGATE_REMOVE, block.number)) {
+            require(change.endBlock <= block.number, "Cannot self-remove in the future");
+            require(
+                signer == change.delegateAddr,
+                "Signer does not have the DELEGATE_REMOVE permission"
+            );
+        }
         require(
             _delegationData().delegations[change.delegateAddr].nonce == change.nonce,
             "Nonces do not match"
         );
+        require(change.nonce > 0, "Never authorized");
         require(change.endBlock > 0x0, "endBlock 0x0 reserved for endless permissions");
 
         // Effects
