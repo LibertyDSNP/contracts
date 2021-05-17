@@ -238,18 +238,19 @@ describe("Identity", () => {
       ).to.be.false;
     });
 
-    it("rejects without DELEGATE_REMOVE", () => {
-      expect(identity.connect(announcerOnly).delegateRemove(authOwner.address, 0x1)).to.be.reverted;
+    it("rejects without DELEGATE_REMOVE", async () => {
+      await expect(identity.connect(announcerOnly).delegateRemove(authOwner.address, 0x1)).to.be
+        .reverted;
     });
 
-    it("rejects block 0x0", () => {
-      expect(
+    it("rejects block 0x0", async () => {
+      await expect(
         identity.connect(authOwner).delegateRemove(announcerOnly.address, 0x0)
       ).to.be.revertedWith("endBlock 0x0 reserved for endless permissions");
     });
 
     it("rejects removing a non-authorized address", async () => {
-      expect(
+      await expect(
         identity.connect(authOwner).delegateRemove(neverAuthorized.address, 0x1)
       ).to.be.revertedWith("endBlock 0x0 reserved for endless permissions");
     });

@@ -72,7 +72,7 @@ describe("IdentityCloneFactory", () => {
       ).to.equal(false);
 
       // Make sure it is initialized
-      expect(proxyAsIdentity.initialize("0x0000000000000000000000000000000000000000")).to.be
+      await expect(proxyAsIdentity.initialize("0x0000000000000000000000000000000000000000")).to.be
         .reverted;
     });
 
