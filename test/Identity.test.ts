@@ -384,7 +384,7 @@ describe("Identity", () => {
       ).to.be.revertedWith("Nonces do not match");
     });
 
-    it("rejects when nonce is too low", async () => {
+    it("prevents replay", async () => {
       // First change to update nonce to 1
       const message = {
         nonce: 0,
@@ -398,23 +398,12 @@ describe("Identity", () => {
         message
       );
 
+      // Success
       await identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message);
 
-      // create an EIP 712 handle change that should fail with nonce=0
-      const message2 = {
-        nonce: 0,
-        delegateAddr: notAuthorized.address,
-        role: DelegationRole.ANNOUNCER,
-      };
-      const { v: v2, r: r2, s: s2 } = await signEIP712(
-        authOwner,
-        identityDomain,
-        delegateAddChangeTypes,
-        message
-      );
-
+      // Replay Fail
       await expect(
-        identity.connect(neverAuthorized).delegateByEIP712Sig(v2, r2, s2, message2)
+        identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message)
       ).to.be.revertedWith("Nonces do not match");
     });
 
@@ -530,7 +519,7 @@ describe("Identity", () => {
       ).to.be.false;
     });
 
-    it("updates nonce", async () => {
+    it("reverts replay", async () => {
       const message = {
         nonce: 1,
         delegateAddr: announcerOnly.address,
@@ -546,6 +535,10 @@ describe("Identity", () => {
       await identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message);
 
       expect(await identity.getNonceForDelegate(announcerOnly.address)).to.equal(2);
+
+      await expect(
+        identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
+      ).to.be.revertedWith("Nonces do not match");
     });
 
     it("rejects when nonce is too high", async () => {
