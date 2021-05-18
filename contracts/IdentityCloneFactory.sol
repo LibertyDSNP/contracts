@@ -32,7 +32,11 @@ contract IdentityCloneFactory is IIdentityCloneFactory {
      * @dev This MUST emit ProxyCreated with the address of the new proxy contract
      * @return The address of the newly created proxy contract
      */
-    function createCloneProxyWithOwner(address logic, address owner) external override returns (address) {
+    function createCloneProxyWithOwner(address logic, address owner)
+        external
+        override
+        returns (address)
+    {
         address instance = logic.clone();
         emit ProxyCreated(instance);
         Identity(instance).initialize(owner);
