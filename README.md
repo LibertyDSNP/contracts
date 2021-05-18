@@ -7,13 +7,13 @@ The official DSNP interface and implementations.
 ### Installation
 
 ```console
-$ npm install @unfinishedlabs/contracts
+$ npm install @dsnp/contracts
 ```
 
 ### JavaScript ABI Usage
 
 ```javascript
-const announcer = require("@unfinishedlabs/contracts/abi/Announcer.json");
+const announcer = require("@dsnp/contracts/abi/Announcer.json");
 const annoucerABI = announcer.abi;
 
 ```
@@ -21,7 +21,7 @@ const annoucerABI = announcer.abi;
 
 ```typescript
 // Requires "resolveJsonModule": true in [tsconfig](https://www.typescriptlang.org/tsconfig#resolveJsonModule)
-import { abi as announcerABI } from "@unfinishedlabs/contracts/abi/Announcer.json";
+import { abi as announcerABI } from "@dsnp/contracts/abi/Announcer.json";
 ```
 
 #### TypeScript Contract Types
@@ -30,15 +30,15 @@ To maintain types, it is suggested to use [TypeChain](https://github.com/ethereu
 
 1. Follow the [install directions](https://github.com/ethereum-ts/Typechain#installation) and add the correct package for your toolset.
 2. Add a postinstall or other step to run typechain:
-  - `"postinstall": "typechain --target=(ethers-v5|web3-v1|other...) ./node_modules/@unfinishedlabs/contracts/**/*.json --outDir ./types/typechain"`
-  - `"build:web3types": "typechain --target=web3-v1 ./node_modules/@unfinishedlabs/contracts/**/*.json --outDir ./types/typechain"`
+  - `"postinstall": "typechain --target=(ethers-v5|web3-v1|other...) ./node_modules/@dsnp/contracts/**/*.json --outDir ./types/typechain"`
+  - `"build:web3types": "typechain --target=web3-v1 ./node_modules/@dsnp/contracts/**/*.json --outDir ./types/typechain"`
 3. Make sure your `--outDir` is in [tsconfig typeRoots](https://www.typescriptlang.org/tsconfig#typeRoots).
 4. Use the types:
 ```typescript
 // web3 example
 import web3 from "web3";
 import { Announcer } from "./types/typechain/Announcer";
-import { abi as announcerABI } from "@unfinishedlabs/contracts/abi/Announcer.json";
+import { abi as announcerABI } from "@dsnp/contracts/abi/Announcer.json";
 
 const getAnnouncerContract = (contractAddress: string) => {
   // web3 requires the type casts
@@ -64,7 +64,7 @@ Once installed, you can use the contracts in the library by importing them:
 ```solidity
 pragma solidity ^0.8.0;
 
-import "@unfinishedlabs/contracts/IAnnounce.sol";
+import "@dsnp/contracts/IAnnounce.sol";
 
 contract MyAnnouncer is IAnnounce {
     // ...
