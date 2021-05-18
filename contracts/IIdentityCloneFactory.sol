@@ -29,5 +29,5 @@ interface IIdentityCloneFactory {
      * @dev This MUST emit ProxyCreated with the address of the new proxy contract
      * @return The address of the newly created proxy contract
      */
-    function createCloneProxyFor(address logic, address owner) external returns (address);
+    function createCloneProxyWithOwner(address logic, address owner) external returns (address);
 }

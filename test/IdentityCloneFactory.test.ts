@@ -49,11 +49,11 @@ describe("IdentityCloneFactory", () => {
     });
   });
 
-  describe("createCloneProxyFor", () => {
+  describe("createCloneProxyWithOwner", () => {
     it("can create a clone with the correct owner", async () => {
       // Deploy new proxy
       const receipt = await (
-        await factory.createCloneProxyFor(identity.address, noMoney.address)
+        await factory.createCloneProxyWithOwner(identity.address, noMoney.address)
       ).wait();
       const createEvent = factory.interface.parseLog(
         receipt.logs.filter(({ address }) => address === factory.address)[0]
@@ -76,8 +76,8 @@ describe("IdentityCloneFactory", () => {
         .reverted;
     });
 
-    it("emits createCloneProxyFor", async () => {
-      await expect(factory.createCloneProxyFor(identity.address, noMoney.address)).to.emit(
+    it("emits ProxyCreated", async () => {
+      await expect(factory.createCloneProxyWithOwner(identity.address, noMoney.address)).to.emit(
         factory,
         "ProxyCreated"
       );
