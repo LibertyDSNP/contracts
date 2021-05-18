@@ -13,22 +13,6 @@ describe("Identity", () => {
   let Identity: ContractFactory;
   let identityDomain;
 
-  const delegateAddChangeTypes = {
-    DelegateAdd: [
-      { name: "nonce", type: "uint32" },
-      { name: "delegateAddr", type: "address" },
-      { name: "role", type: "uint8" },
-    ],
-  };
-
-  const delegateRemoveChangeTypes = {
-    DelegateRemove: [
-      { name: "nonce", type: "uint32" },
-      { name: "delegateAddr", type: "address" },
-      { name: "endBlock", type: "uint64" },
-    ],
-  };
-
   const getIdentityDomain = async (contract: Contract) => ({
     name: "Identity",
     version: "1",
@@ -99,9 +83,7 @@ describe("Identity", () => {
         { p: DelegationPermission.DELEGATE_REMOVE, x: false },
       ];
       tests.forEach((tc) => {
-        it(`Permission ${DelegationPermission[tc.p]}ationPermission[tc.p]} should ${
-          tc.x ? "" : "not"
-        } be allowed`, async () => {
+        it(`Permission ${DelegationPermission[tc.p]} should return ${tc.x}`, async () => {
           const result = await identity.isAuthorizedTo(notAuthorized.address, tc.p, 0x1);
           expect(result).to.equal(tc.x);
         });
@@ -117,9 +99,9 @@ describe("Identity", () => {
         { p: DelegationPermission.ANNOUNCE, x: false, b: 0x101 },
       ];
       tests.forEach((tc) => {
-        it(`Permission ${DelegationPermission[tc.p]} should ${
-          tc.x ? "" : "not"
-        } be allowed for block ${tc.b}`, async () => {
+        it(`Permission ${DelegationPermission[tc.p]} should return ${tc.x} block ${
+          tc.b
+        }`, async () => {
           identity.delegateRemove(announcerOnly.address, 0x100);
           const result = await identity.isAuthorizedTo(announcerOnly.address, tc.p, tc.b);
           expect(result).to.equal(tc.x);
@@ -319,6 +301,14 @@ describe("Identity", () => {
   });
 
   describe("delegateByEIP712Sig", () => {
+    const delegateAddChangeTypes = {
+      DelegateAdd: [
+        { name: "nonce", type: "uint32" },
+        { name: "delegateAddr", type: "address" },
+        { name: "role", type: "uint8" },
+      ],
+    };
+
     it("success with DELEGATE_ADD ", async () => {
       const message = {
         nonce: 0,
@@ -472,6 +462,14 @@ describe("Identity", () => {
   });
 
   describe("delegateRemoveByEIP712Sig", () => {
+    const delegateRemoveChangeTypes = {
+      DelegateRemove: [
+        { name: "nonce", type: "uint32" },
+        { name: "delegateAddr", type: "address" },
+        { name: "endBlock", type: "uint64" },
+      ],
+    };
+
     it("success with DELEGATE_REMOVE ", async () => {
       const message = {
         nonce: 1,
