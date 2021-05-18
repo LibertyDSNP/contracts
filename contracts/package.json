@@ -1,5 +1,5 @@
 {
-  "name": "@unfinishedlabs/contracts",
+  "name": "@dsnp/contracts",
   "description": "Official DSNP Interfaces, Contracts, and ABIs",
   "version": "0.0.0",
   "scripts": {

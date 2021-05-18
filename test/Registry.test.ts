@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import chai from "chai";
 const { expect } = chai;
-import { generateHexString } from "@unfinishedlabs/test-generators";
+import { generateHexString } from "@dsnp/test-generators";
 import { signEIP712 } from "./EIP712";
 
 describe("Registry", () => {
