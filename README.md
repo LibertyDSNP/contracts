@@ -85,6 +85,7 @@ Basic Command List:
 - `npm run lint` - to run the linter
 - `npm run format` - to trigger formatting 
 - `npm run deploy:testnet` - deploys our `deploy.ts` script to our POA testnet defined in the `hardhat.config.ts`
+- `npm run deploy:localhost` - deploys our `deploy.ts` script to our hardhat network defined in the `hardhat.config.ts`
 
 Environment Variables
 1. create a `.env` file and set values for all variables in `.env.sample`
@@ -108,3 +109,8 @@ Environment Variables
 * This repo uses [Hardhat](https://hardhat.org/getting-started/) + [ethers](https://docs.ethers.io/v5/) for interfacing with Ethereum,
 * [Waffle](https://ethereum-waffle.readthedocs.io/en/latest/index.html) for testing,
 * And [Truffle](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations) or truffle-style for contract migration.
+
+
+## Deploy contracts locally
+1. Spin up a node by running `npx hardhat node`
+1. Once node is up - run `npm run deploy:localhost`
