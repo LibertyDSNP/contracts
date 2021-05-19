@@ -50,9 +50,9 @@ contract Identity is IDelegation, ERC165 {
         (((1 << uint32(Permission.ANNOUNCE)) |
             (1 << uint32(Permission.OWNERSHIP_TRANSFER)) |
             (1 << uint32(Permission.DELEGATE_ADD)) |
-            (1 << uint32(Permission.DELEGATE_REMOVE))) << (uint32(Role.OWNER) * 32)) |
+            (1 << uint32(Permission.DELEGATE_REMOVE))) << (uint32(Role.OWNER) << 5)) |
             // Role.ANNOUNCER Mask
-            ((1 << uint32(Permission.ANNOUNCE)) << (uint32(Role.ANNOUNCER) * 32));
+            ((1 << uint32(Permission.ANNOUNCE)) << (uint32(Role.ANNOUNCER) << 5));
 
     /*
      * @dev Modifier that requires that the contract data be initialized
@@ -118,7 +118,7 @@ contract Identity is IDelegation, ERC165 {
      */
     function doesRoleHavePermission(Role role, Permission permission) public pure returns (bool) {
         // bitwise (possible) AND (check single permission mask)
-        return ROLE_PERMISSIONS & (((1 << uint32(permission))) << (uint32(role) * 32)) > 0x0;
+        return ROLE_PERMISSIONS & (((1 << uint32(permission))) << (uint32(role) << 5)) > 0x0;
     }
 
     /**
