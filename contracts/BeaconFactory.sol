@@ -8,7 +8,7 @@ import "./IdentityBeaconProxy.sol";
 import "./Identity.sol";
 
 contract BeaconFactory is IIdentityBeaconFactory {
-    address immutable defaultBeacon;
+    address private immutable defaultBeacon;
 
     constructor(address _beaconAddr) {
         defaultBeacon = _beaconAddr;
