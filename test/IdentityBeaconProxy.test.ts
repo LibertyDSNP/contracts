@@ -67,8 +67,6 @@ describe("IdentityBeaconProxy", () => {
       // Update beacon
       await beaconInstance.upgradeTo(identityInstance.address);
 
-      console.log("new implementation", await beaconInstance.implementation());
-
       // New Logic Contract "works"
       await expect(
         proxyAsDelegate.connect(signer).delegate(noMoneyAddress, DelegationRole.ANNOUNCER)
