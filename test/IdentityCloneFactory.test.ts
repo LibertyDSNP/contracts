@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import chai from "chai";
 import { ContractFactory } from "@ethersproject/contracts";
-import { DelegationRole } from "./DSNPEnums";
+import { DelegationRole } from "./helpers/DSNPEnums";
 const { expect } = chai;
 
 describe("IdentityCloneFactory", () => {

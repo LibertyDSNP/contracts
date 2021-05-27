@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import chai from "chai";
 const { expect } = chai;
 import { generateHexString } from "@dsnp/test-generators";
-import { signEIP712 } from "./EIP712";
+import { signEIP712 } from "./helpers/EIP712";
 
 describe("Registry", () => {
   const handle = "flarp";

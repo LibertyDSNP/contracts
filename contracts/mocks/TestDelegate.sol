@@ -17,6 +17,10 @@ contract TestDelegate is ERC165, IDelegation {
         delegateAddr = addr;
     }
 
+    function initialize(address owner) external {
+        delegateAddr = owner;
+    }
+
     function delegate(address newDelegate, Role role) external override {
         require(false, "Not implemented");
     }

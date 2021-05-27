@@ -2,8 +2,8 @@ import { ethers } from "hardhat";
 import chai from "chai";
 import { describe } from "mocha";
 import { ContractFactory } from "@ethersproject/contracts";
-import { DelegationPermission, DelegationRole } from "./DSNPEnums";
-import { signEIP712 } from "./EIP712";
+import { DelegationPermission, DelegationRole } from "./helpers/DSNPEnums";
+import { signEIP712 } from "./helpers/EIP712";
 import { Contract } from "ethers";
 const { expect } = chai;
 
