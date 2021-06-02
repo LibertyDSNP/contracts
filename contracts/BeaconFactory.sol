@@ -6,12 +6,15 @@ import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "./IIdentityBeaconFactory.sol";
 import "./IdentityBeaconProxy.sol";
 import "./Identity.sol";
+import "./IRegistry.sol";
 
 contract BeaconFactory is IIdentityBeaconFactory {
     address private immutable defaultBeacon;
+    address private immutable registry;
 
-    constructor(address _beaconAddr) {
+    constructor(address _beaconAddr, address _registry) {
         defaultBeacon = _beaconAddr;
+        registry = _registry;
     }
 
     /**
@@ -75,5 +78,29 @@ contract BeaconFactory is IIdentityBeaconFactory {
         proxy.initialize(beacon, owner);
 
         return address(proxy);
+    }
+
+    /**
+     * @dev Creates a new identity with the adddress as the owner and registers it with a handle
+     * @param beacon The beacon address to use logic contract resolution
+     * @param owner The initial owner's address of the new contract
+     * @param handle The handle the new identity proxy under which should be registered
+     *
+     * @dev This MUST emit ProxyCreated with the address of the new proxy contract
+     * @dev This must revert if registration reverts
+     * @return The address of the newly created proxy contract and the id of the registration
+     */
+    function createAndRegisterBeaconProxy(
+        address beacon,
+        address owner,
+        string calldata handle
+    ) external override returns (uint64, address) {
+        // Create beacon contract
+        address addr = this.createBeaconProxyWithOwner(beacon, owner);
+
+        // Now register the new contract under the provided handle.
+        IRegistry registryContract = IRegistry(registry);
+        uint64 registrationId = registryContract.register(addr, handle);
+        return (registrationId, addr);
     }
 }

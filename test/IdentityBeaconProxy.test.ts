@@ -22,6 +22,10 @@ describe("IdentityBeaconProxy", () => {
   beforeEach(async () => {
     [deployer, signer] = await ethers.getSigners();
 
+    const Registry = await ethers.getContractFactory("Registry");
+    const registry = await Registry.deploy();
+    await registry.deployed();
+
     const Identity = await ethers.getContractFactory("Identity");
     identityInstance = await Identity.deploy("0x0000000000000000000000000000000000000000");
     await identityInstance.deployed();
@@ -35,7 +39,7 @@ describe("IdentityBeaconProxy", () => {
     await beaconInstance.deployed();
 
     const BeaconFactory = await ethers.getContractFactory("BeaconFactory");
-    beaconFactoryInstance = await BeaconFactory.deploy(beaconInstance.address);
+    beaconFactoryInstance = await BeaconFactory.deploy(beaconInstance.address, registry.address);
     await beaconFactoryInstance.deployed();
   });
 
