@@ -53,7 +53,10 @@ interface IIdentityBeaconFactory {
      *
      * @dev This MUST emit ProxyCreated with the address of the new proxy contract
      * @dev This must revert if registration reverts
-     * @return The id of the registration and the address of the newly created proxy contract
      */
-    function createAndRegisterBeaconProxy(address beacon, address owner, string calldata handle) external returns (uint64, address);
+    function createAndRegisterBeaconProxy(
+        address beacon,
+        address owner,
+        string calldata handle
+    ) external;
 }

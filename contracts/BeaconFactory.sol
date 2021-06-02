@@ -88,19 +88,17 @@ contract BeaconFactory is IIdentityBeaconFactory {
      *
      * @dev This MUST emit ProxyCreated with the address of the new proxy contract
      * @dev This must revert if registration reverts
-     * @return The address of the newly created proxy contract and the id of the registration
      */
     function createAndRegisterBeaconProxy(
         address beacon,
         address owner,
         string calldata handle
-    ) external override returns (uint64, address) {
+    ) external override {
         // Create beacon contract
         address addr = this.createBeaconProxyWithOwner(beacon, owner);
 
         // Now register the new contract under the provided handle.
         IRegistry registryContract = IRegistry(registry);
-        uint64 registrationId = registryContract.register(addr, handle);
-        return (registrationId, addr);
+        registryContract.register(addr, handle);
     }
 }
