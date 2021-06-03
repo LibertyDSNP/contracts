@@ -70,14 +70,7 @@ contract BeaconFactory is IIdentityBeaconFactory {
         override
         returns (address)
     {
-        // Effects
-        IdentityBeaconProxy proxy = new IdentityBeaconProxy();
-        emit ProxyCreated(address(proxy));
-
-        // Interactions
-        proxy.initialize(beacon, owner);
-
-        return address(proxy);
+        return createProxy(beacon, owner);
     }
 
     /**
@@ -94,11 +87,29 @@ contract BeaconFactory is IIdentityBeaconFactory {
         address owner,
         string calldata handle
     ) external override {
-        // Create beacon contract
-        address addr = this.createBeaconProxyWithOwner(beacon, owner);
+        address addr = createProxy(beacon, owner);
 
         // Now register the new contract under the provided handle.
         IRegistry registryContract = IRegistry(registry);
         registryContract.register(addr, handle);
+    }
+
+    /**
+     * @dev Creates a new identity with the ecrecover address as the owner
+     * @param beacon The beacon address to use logic contract resolution
+     * @param owner The initial owner's address of the new contract
+     *
+     * @dev This MUST emit ProxyCreated with the address of the new proxy contract
+     * @return The address of the newly created proxy contract
+     */
+    function createProxy(address beacon, address owner) private returns (address) {
+        // Effects
+        IdentityBeaconProxy proxy = new IdentityBeaconProxy();
+        emit ProxyCreated(address(proxy));
+
+        // Interactions
+        proxy.initialize(beacon, owner);
+
+        return address(proxy);
     }
 }
