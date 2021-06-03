@@ -26,7 +26,7 @@ interface IRegistry {
      * @param addr The address the DSNP Id is pointing at
      * @param handle The actual UTF-8 string used for the handle
      */
-    event DSNPRegistryUpdate(uint64 indexed id, address indexed addr, string indexed handle);
+    event DSNPRegistryUpdate(uint64 indexed id, address indexed addr, string handle);
 
     /**
      * @dev Register a new DSNP Id
