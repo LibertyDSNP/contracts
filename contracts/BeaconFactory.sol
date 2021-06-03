@@ -6,12 +6,15 @@ import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "./IIdentityBeaconFactory.sol";
 import "./IdentityBeaconProxy.sol";
 import "./Identity.sol";
+import "./IRegistry.sol";
 
 contract BeaconFactory is IIdentityBeaconFactory {
     address private immutable defaultBeacon;
+    address private immutable registry;
 
-    constructor(address _beaconAddr) {
+    constructor(address _beaconAddr, address _registry) {
         defaultBeacon = _beaconAddr;
+        registry = _registry;
     }
 
     /**
@@ -67,6 +70,39 @@ contract BeaconFactory is IIdentityBeaconFactory {
         override
         returns (address)
     {
+        return createProxy(beacon, owner);
+    }
+
+    /**
+     * @dev Creates a new identity with the address as the owner and registers it with a handle
+     * @param beacon The beacon address to use logic contract resolution
+     * @param owner The initial owner's address of the new contract
+     * @param handle The handle the new identity proxy under which should be registered
+     *
+     * @dev This MUST emit ProxyCreated with the address of the new proxy contract
+     * @dev This must revert if registration reverts
+     */
+    function createAndRegisterBeaconProxy(
+        address beacon,
+        address owner,
+        string calldata handle
+    ) external override {
+        address addr = createProxy(beacon, owner);
+
+        // Now register the new contract under the provided handle.
+        IRegistry registryContract = IRegistry(registry);
+        registryContract.register(addr, handle);
+    }
+
+    /**
+     * @dev Creates a new identity with the ecrecover address as the owner
+     * @param beacon The beacon address to use logic contract resolution
+     * @param owner The initial owner's address of the new contract
+     *
+     * @dev This MUST emit ProxyCreated with the address of the new proxy contract
+     * @return The address of the newly created proxy contract
+     */
+    function createProxy(address beacon, address owner) private returns (address) {
         // Effects
         IdentityBeaconProxy proxy = new IdentityBeaconProxy();
         emit ProxyCreated(address(proxy));
