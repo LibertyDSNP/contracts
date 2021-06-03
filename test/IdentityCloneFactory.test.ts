@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import chai from "chai";
-import { ContractFactory } from "@ethersproject/contracts";
+import { ContractFactory } from "ethers";
 import { DelegationRole } from "./helpers/DSNPEnums";
 const { expect } = chai;
 
