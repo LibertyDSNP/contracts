@@ -32,11 +32,11 @@ interface IRegistry {
      * @dev Register a new DSNP Id
      * @param addr Address for the new DSNP Id to point at
      * @param handle The handle for discovery
-     * @return id for new registration
      *
      * MUST reject if the handle is already in use
      * MUST emit DSNPRegistryUpdate
      * MUST check that addr implements IDelegation interface
+     * @return id for new registration
      */
     function register(address addr, string calldata handle) external returns (uint64);
 
@@ -48,7 +48,7 @@ interface IRegistry {
      * MUST be called by someone who is authorized on the contract
      *      via `IDelegation(oldAddr).isAuthorizedTo(oldAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
      * MUST emit DSNPRegistryUpdate
-     * MUST check that addr implements IDelegation interface
+     * MUST check that newAddr implements IDelegation interface
      */
     function changeAddress(address newAddr, string calldata handle) external;
 
