@@ -103,26 +103,20 @@ interface IRegistry {
     ) external;
 
     /**
-     * @dev Resolve a handle to a contract address
+     * @dev Resolve a handle to a DSNP Id and contract address
      * @param handle The handle to resolve
      *
-     * @return Address of the contract
+     * rejects if not found
+     * @return A tuple of the DSNP Id and the Address of the contract
      */
-    function resolveHandleToAddress(string calldata handle) external view returns (address);
+    function resolveRegistration(string calldata handle) external view returns (uint64, address);
 
     /**
-     * @dev Resolve a handle to a DSNP Id
+     * @dev Resolve a handle to a EIP 712 nonce
      * @param handle The handle to resolve
      *
-     * @return DSNP Id
-     */
-    function resolveHandleToId(string calldata handle) external view returns (uint64);
-
-    /**
-     * @dev Resolve a handle to nonce
-     * @param handle The handle to resolve
-     *
-     * @return nonce value for handle
+     * rejects if not found
+     * @return expected nonce for next EIP 712 update
      */
     function resolveHandleToNonce(string calldata handle) external view returns (uint32);
 }

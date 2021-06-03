@@ -105,16 +105,11 @@ describe("Registry", () => {
         .withArgs(firstId + 2, delegate3.address, "baz");
     });
 
-    it("stores correct id", async () => {
+    it("stores correct id and address", async () => {
       await registry.connect(signer1).register(delegate1.address, handle);
-      const result = await registry.resolveHandleToId(handle);
-      expect(result).to.equal(1000);
-    });
-
-    it("stores correct address", async () => {
-      await registry.connect(signer1).register(delegate1.address, handle);
-      const result = await registry.resolveHandleToAddress(handle);
-      expect(result).to.equal(delegate1.address);
+      const result = await registry.resolveRegistration(handle);
+      expect(result[0]).to.equal(1000);
+      expect(result[1]).to.equal(delegate1.address);
     });
   });
 
@@ -127,8 +122,8 @@ describe("Registry", () => {
     it("updates stored address", async () => {
       await registry.connect(signer1).changeAddress(newDelegate1.address, handle);
 
-      const result = await registry.resolveHandleToAddress(handle);
-      expect(result).to.equal(newDelegate1.address);
+      const result = await registry.resolveRegistration(handle);
+      expect(result[1]).to.equal(newDelegate1.address);
     });
 
     it("emits a DSNPRegistryUpdate event", async () => {
@@ -173,8 +168,8 @@ describe("Registry", () => {
       const message = { nonce: 0, addr: newDelegate1.address, handle: handle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, addressChangeTypes, message);
       await registry.connect(signer2).changeAddressByEIP712Sig(v, r, s, message);
-
-      expect(await registry.resolveHandleToAddress(handle)).to.equal(newDelegate1.address);
+      const result = await registry.resolveRegistration(handle);
+      expect(result[1]).to.equal(newDelegate1.address);
     });
 
     it("updates nonce", async () => {
@@ -263,10 +258,8 @@ describe("Registry", () => {
     it("stores address and id under new handle", async () => {
       await registry.connect(signer1).changeHandle(handle, newHandle);
 
-      const addr = await registry.resolveHandleToAddress(newHandle);
+      const [id, addr] = await registry.resolveRegistration(newHandle);
       expect(addr).to.equal(delegate1.address);
-
-      const id = await registry.resolveHandleToId(newHandle);
       expect(id).to.equal(firstId);
     });
 
@@ -279,7 +272,9 @@ describe("Registry", () => {
     it("clears old handle and frees it for registration", async () => {
       await registry.connect(signer1).changeHandle(handle, newHandle);
 
-      await expect(registry.resolveHandleToId(handle)).to.be.revertedWith("Handle does not exist");
+      await expect(registry.resolveRegistration(handle)).to.be.revertedWith(
+        "Handle does not exist"
+      );
 
       await expect(registry.connect(signer2).register(delegate2.address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
@@ -322,9 +317,9 @@ describe("Registry", () => {
       const message = { nonce: 0, oldHandle: handle, newHandle: newHandle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, handleChangeTypes, message);
       await registry.connect(signer2).changeHandleByEIP712Sig(v, r, s, message);
-
-      expect(await registry.resolveHandleToAddress(newHandle)).to.equal(delegate1.address);
-      expect(await registry.resolveHandleToId(newHandle)).to.equal(firstId);
+      const [id, addr] = await registry.resolveRegistration(newHandle);
+      expect(addr).to.equal(delegate1.address);
+      expect(id).to.equal(firstId);
     });
 
     it("emits a DSNPRegistryUpdate event", async () => {
@@ -341,7 +336,9 @@ describe("Registry", () => {
       const { v, r, s } = await signEIP712(signer1, registryDomain, handleChangeTypes, message);
       await registry.connect(signer2).changeHandleByEIP712Sig(v, r, s, message);
 
-      await expect(registry.resolveHandleToId(handle)).to.be.revertedWith("Handle does not exist");
+      await expect(registry.resolveRegistration(handle)).to.be.revertedWith(
+        "Handle does not exist"
+      );
 
       await expect(registry.connect(signer2).register(delegate2.address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
