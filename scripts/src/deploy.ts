@@ -38,15 +38,6 @@ export async function main() {
   // Emit DSNP migration event for the Identity contract
   await contract1.upgraded(identityLogic.address, "Identity");
 
-  // Deploy the Registry Contract
-  const Registry = await ethers.getContractFactory("Registry");
-  const registry = await Registry.deploy();
-  await registry.deployed();
-  console.log("registry deployed to:", registry.address);
-
-  // Emit DSNP Migration event for the Registry
-  await contract1.upgraded(registry.address, "Registry");
-
   // Deploy the Identity Proxy Clone Factory Contract
   const IdentityCloneFactory = await ethers.getContractFactory("IdentityCloneFactory");
   const cloneFactory = await IdentityCloneFactory.deploy();
@@ -61,6 +52,15 @@ export async function main() {
   const beacon = await Beacon.deploy(identityLogic.address);
   await beacon.deployed();
   console.log("beacon deployed to:", beacon.address);
+
+  // Deploy the Registry Contract
+  const Registry = await ethers.getContractFactory("Registry");
+  const registry = await Registry.deploy();
+  await registry.deployed();
+  console.log("registry deployed to:", registry.address);
+
+  // Emit DSNP Migration event for the Registry
+  await contract1.upgraded(registry.address, "Registry");
 
   const IdentityBeaconFactory = await ethers.getContractFactory("BeaconFactory");
   const beaconFactory = await IdentityBeaconFactory.deploy(beacon.address, registry.address);
