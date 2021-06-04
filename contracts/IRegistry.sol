@@ -26,17 +26,17 @@ interface IRegistry {
      * @param addr The address the DSNP Id is pointing at
      * @param handle The actual UTF-8 string used for the handle
      */
-    event DSNPRegistryUpdate(uint64 indexed id, address indexed addr, string indexed handle);
+    event DSNPRegistryUpdate(uint64 indexed id, address indexed addr, string handle);
 
     /**
      * @dev Register a new DSNP Id
      * @param addr Address for the new DSNP Id to point at
      * @param handle The handle for discovery
-     * @return id for new registration
      *
      * MUST reject if the handle is already in use
      * MUST emit DSNPRegistryUpdate
      * MUST check that addr implements IDelegation interface
+     * @return id for new registration
      */
     function register(address addr, string calldata handle) external returns (uint64);
 
@@ -48,7 +48,7 @@ interface IRegistry {
      * MUST be called by someone who is authorized on the contract
      *      via `IDelegation(oldAddr).isAuthorizedTo(oldAddr, Permission.OWNERSHIP_TRANSFER, block.number)`
      * MUST emit DSNPRegistryUpdate
-     * MUST check that addr implements IDelegation interface
+     * MUST check that newAddr implements IDelegation interface
      */
     function changeAddress(address newAddr, string calldata handle) external;
 
@@ -103,26 +103,20 @@ interface IRegistry {
     ) external;
 
     /**
-     * @dev Resolve a handle to a contract address
+     * @dev Resolve a handle to a DSNP Id and contract address
      * @param handle The handle to resolve
      *
-     * @return Address of the contract
+     * rejects if not found
+     * @return A tuple of the DSNP Id and the Address of the contract
      */
-    function resolveHandleToAddress(string calldata handle) external view returns (address);
+    function resolveRegistration(string calldata handle) external view returns (uint64, address);
 
     /**
-     * @dev Resolve a handle to a DSNP Id
+     * @dev Resolve a handle to a EIP 712 nonce
      * @param handle The handle to resolve
      *
-     * @return DSNP Id
-     */
-    function resolveHandleToId(string calldata handle) external view returns (uint64);
-
-    /**
-     * @dev Resolve a handle to nonce
-     * @param handle The handle to resolve
-     *
-     * @return nonce value for handle
+     * rejects if not found
+     * @return expected nonce for next EIP 712 update
      */
     function resolveHandleToNonce(string calldata handle) external view returns (uint32);
 }

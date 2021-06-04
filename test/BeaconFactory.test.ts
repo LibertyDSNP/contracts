@@ -3,7 +3,6 @@ import { ContractTransaction } from "ethers";
 import chai from "chai";
 import { describe } from "mocha";
 import { DelegationPermission, DelegationRole } from "./helpers/DSNPEnums";
-import { keccak256 } from "js-sha3";
 const { expect } = chai;
 
 const getProxyAddressFromResponse = async (response: ContractTransaction) => {
@@ -38,7 +37,7 @@ const getDSNPRegistryUpdateFromResponse = async (
   return {
     id: events[0]?.args[0],
     addr: events[0]?.args[1],
-    handle: events[0]?.args[2].hash,
+    handle: events[0]?.args[2],
   };
 };
 
@@ -229,7 +228,7 @@ describe("BeaconFactory", () => {
 
       const registryEvent = await getDSNPRegistryUpdateFromResponse(response);
       expect(registryEvent.addr).to.equal(newProxyAddress);
-      expect(registryEvent.handle).to.equal("0x" + keccak256(handle));
+      expect(registryEvent.handle).to.equal(handle);
     });
 
     it("revert in register reverts call", async () => {

@@ -257,36 +257,23 @@ contract Registry is IRegistry {
     }
 
     /**
-     * @dev Resolve a handle to a contract address
+     * @dev Resolve a handle to a DSNP Id and contract address
      * @param handle The handle to resolve
      *
-     * @return Address of the contract
+     * rejects if not found
+     * @return A tuple of the DSNP Id and the Address of the contract
      */
-    function resolveHandleToAddress(string calldata handle)
+    function resolveRegistration(string calldata handle)
         external
         view
         override
-        returns (address)
+        returns (uint64, address)
     {
         Registration memory reg = registrations[handle];
 
         require(reg.id != 0, "Handle does not exist");
 
-        return reg.identityAddress;
-    }
-
-    /**
-     * @dev Resolve a handle to a DSNP Id
-     * @param handle The handle to resolve
-     *
-     * @return DSNP Id
-     */
-    function resolveHandleToId(string calldata handle) external view override returns (uint64) {
-        Registration memory reg = registrations[handle];
-
-        require(reg.id != 0, "Handle does not exist");
-
-        return reg.id;
+        return (reg.id, reg.identityAddress);
     }
 
     /**
