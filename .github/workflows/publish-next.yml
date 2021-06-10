@@ -1,38 +1,89 @@
-name: Publish NPM @next
+name: Publish NPM/Docker @next
 on:
   push:
-    branches: [ main ]
+    branches: [ feature/docker-test-container-178467941 ] # TESTING
 jobs:
-  test:
+#  npm-next:
+#    runs-on: ubuntu-20.04
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#
+#      - name: Use Node.js
+#        uses: actions/setup-node@v2
+#        with:
+#          node-version: '14.15.5'
+#          registry-url: 'https://registry.npmjs.org'
+#
+#      - uses: actions/cache@v2
+#        with:
+#          path: ~/.npm
+#          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+#          restore-keys: |
+#            ${{ runner.os }}-node-
+#
+#      - name: Install
+#        run: npm ci
+#
+#      - name: NPM Contracts Version ⬆️
+#        working-directory: ./contracts
+#        run: npm version --new-version "v0.0.0-${FULL_SHA:0:6}" --no-git-tag-version
+#        env:
+#          FULL_SHA: ${{ github.sha }}
+#
+#      - name: NPM Contracts Publish @next 🚂
+#        working-directory: ./contracts
+#        run: npm publish --tag next --access public
+#        env:
+#          NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN}}
+
+  docker-next:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Use Node.js
-        uses: actions/setup-node@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
         with:
-          node-version: '14.15.5'
-          registry-url: 'https://registry.npmjs.org'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install
-        run: npm ci
-
-      - name: NPM Contracts Version ⬆️
-        working-directory: ./contracts
-        run: npm version --new-version "v0.0.0-${FULL_SHA:0:6}" --no-git-tag-version
+      - name: SHA Tag
+        run: |
+          export SHA_TAG="v0.0.0-${FULL_SHA:0:6}"
+          echo $SHA_TAG
+          echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
         env:
           FULL_SHA: ${{ github.sha }}
 
-      - name: NPM Contracts Publish @next 🚂
-        working-directory: ./contracts
-        run: npm publish --tag next --access public
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN}}
+      - name: Build and push dsnp/ganache:next
+        id: docker_build_ganache
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          file: ganache.Dockerfile
+          tags: |
+            dsnp/ganache:next
+            dsnp/ganache:${{ env.SHA_TAG }}
+
+      - name: Build and push dsnp/hardhat:next
+        id: docker_build_hardhat
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          file: hardhat.Dockerfile
+          tags: |
+            dsnp/hardhat:next
+            dsnp/hardhat:${{ env.SHA_TAG }}
+
+      - name: Image digests
+        run: |
+          echo dsnp/hardhat ${{ steps.docker_build_hardhat.outputs.digest }}
+          echo dsnp/ganache ${{ steps.docker_build_ganache.outputs.digest }}
