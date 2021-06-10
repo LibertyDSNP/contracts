@@ -92,9 +92,9 @@ Environment Variables
 
 |Env Variable Name      | Description | 
 | ------------- | -----------  | 
-| LOCAL_NETWORK_PRIVATE_KEY         | private key for an account we have on our local network that has eth.         | 
-| STAGENET_ACCOUNT_PRIVATE_KEY       | private key for an account we have on our test network that has eth.         |
-| STAGENET_CHAIN_URL     | Url to connect to tesnet        |     
+| LOCAL_PRIVATE_KEY         | private key for an account we have on our local network that has eth.         | 
+| STAGENET_PRIVATE_KEY       | private key for an account we have on our staging network that has eth.         |
+| STAGENET_CHAIN_URL     | Url to connect to staging network        |     
 | VALIDATOR1 | hex prefixed address for validator running on node called liberty-chain |
 | VALIDATOR2 | hex prefixed address for validator running on node called liberty-chain1
 | BOOTNODE | enode address of the node our node would like to connect to |
