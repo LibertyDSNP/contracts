@@ -1,8 +1,8 @@
 FROM trufflesuite/ganache-cli:v6.12.2
-ENV MNEMONIC "test test test test test test test test test test test junk"
-ENV DEPLOY_PRIVATE_KEY "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-ENV CHAINID "31337"
-ENV LOCAL_PRIVATE_KEY ${DEPLOY_PRIVATE_KEY}
+ARG MNEMONIC="test test test test test test test test test test test junk"
+ARG DEPLOY_PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+ARG CHAINID="31337"
+ARG LOCAL_PRIVATE_KEY=${DEPLOY_PRIVATE_KEY}
 
 WORKDIR /contracts
 

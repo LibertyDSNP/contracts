@@ -1,8 +1,6 @@
 FROM node:16.3-alpine
-ENV MNEMONIC "test test test test test test test test test test test junk"
-ENV DEPLOY_PRIVATE_KEY "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-ENV CHAINID "31337"
-ENV LOCAL_PRIVATE_KEY ${DEPLOY_PRIVATE_KEY}
+
+ENV LOCAL_PRIVATE_KEY "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
 WORKDIR /app
 
