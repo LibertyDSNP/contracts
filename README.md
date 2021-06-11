@@ -71,6 +71,67 @@ contract MyAnnouncer is IAnnounce {
 }
 ```
 
+## Running a Testing Chain
+
+Version matching may matter when working with the the contracts package or the SDK package.
+Docker images are tagged in the same way as the npm package, so you can match the npm package version to the image version.
+To find out what version of the contracts package you are using:
+
+```bash
+$ npm ls --all | grep "@dsnp/contracts"
+```
+
+### Ganache Based Docker
+
+Our Ganache Based Docker Image has the contracts pre-setup on the [ganache-cli](https://github.com/trufflesuite/ganache-cli/) chain.
+It is a small image designed for CI contexts.
+https://hub.docker.com/r/dsnp/ganache/tags
+
+Exposed Port: 8545
+
+#### Build Arguments
+
+As the Ganache image comes with the chain pre-started (for the small image size), accounts are pre-set.
+If you need to use a different mnemonic or chain id, please use the ganache.Dockerfile to build a new image.
+
+```
+MNEMONIC="test test test test test test test test test test test junk"
+DEPLOY_PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+CHAINID="31337"
+```
+
+### Hardhat Based Docker
+
+Our Hardhat Based Docker Image will run the [Hardhat Network](https://hardhat.org/hardhat-network/) and deploys the contracts at run time.
+The Hardhat network has various advantages such as better stack traces, but is a much larger image and designed for local development.
+
+https://hub.docker.com/r/dsnp/hardhat/tags
+
+Exposed Port: 8545
+
+#### Accounts 
+
+These are setup in the [hardhat.config.ts](https://hardhat.org/config/#hardhat-network) file.
+If you need different accounts, please build a different image.
+
+```
+MNEMONIC="test test test test test test test test test test test junk"
+CHAINID="31337"
+```
+
+### Deploy Hardhat Network Locally
+1. Spin up a hardhat node by running `npx hardhat node`
+1. Once node is up - run `npm run deploy:localhost`
+
+### evm_snapshot/evm_revert
+
+Both Hardhat and Ganache based test chains support snapshot and revert. Learn more in the [ganache docs](https://github.com/trufflesuite/ganache-cli/#custom-methods).
+
+Remember:
+> A snapshot can only be used once. After a successful evm_revert, the same snapshot id cannot be used again.
+> Consider creating a new snapshot after each evm_revert if you need to revert to the same point multiple times.
+
+
 ## Development
 
 We are using [hardhat](https://hardhat.org/) to compile and deploy the contracts
@@ -108,9 +169,3 @@ Environment Variables
 ## Development
 * This repo uses [Hardhat](https://hardhat.org/getting-started/) + [ethers](https://docs.ethers.io/v5/) for interfacing with Ethereum,
 * [Waffle](https://ethereum-waffle.readthedocs.io/en/latest/index.html) for testing,
-* And [Truffle](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations) or truffle-style for contract migration.
-
-
-## Deploy contracts locally
-1. Spin up a node by running `npx hardhat node`
-1. Once node is up - run `npm run deploy:localhost`

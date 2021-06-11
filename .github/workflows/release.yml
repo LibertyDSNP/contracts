@@ -1,4 +1,4 @@
-name: Release Docker / Package Latest
+name: Release NPM/Docker @latest
 on:
   release:
     types: [ released ]
