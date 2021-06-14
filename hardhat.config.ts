@@ -6,12 +6,8 @@ import "hardhat-gas-reporter";
 
 const getAccounts = (network: string) => {
   const accounts = {
-    localhost: process.env.LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY
-      ? [process.env.LOCAL_NETWORK_ACCOUNT_PRIVATE_KEY]
-      : [],
-    stagenet: process.env.STAGENET_ACCOUNT_PRIVATE_KEY
-      ? [process.env.STAGENET_ACCOUNT_PRIVATE_KEY]
-      : [],
+    localhost: process.env.LOCAL_PRIVATE_KEY ? [process.env.LOCAL_PRIVATE_KEY] : [],
+    stagenet: process.env.STAGENET_PRIVATE_KEY ? [process.env.STAGENET_PRIVATE_KEY] : [],
   };
 
   if (!accounts[network]) {
