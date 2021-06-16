@@ -6,6 +6,10 @@ ARG LOCAL_PRIVATE_KEY=${DEPLOY_PRIVATE_KEY}
 
 WORKDIR /contracts
 
+RUN apk --update add curl jq && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm /var/cache/apk/*
+
 COPY package.json package-lock.json /contracts/
 COPY tsconfig.json hardhat.config.ts /contracts/
 COPY scripts /contracts/scripts
@@ -20,5 +24,8 @@ RUN npm i -g npm && \
  rm -Rf /contracts ~/.npm ~/.cache ~/.config ~/.local
 
 WORKDIR /app
+
+HEALTHCHECK --start-period=500s \
+  CMD curl -s -X POST --data '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}' http://localhost:8545 | jq 'if .result >= "0xe" then . else halt_error(1) end'
 
 ENTRYPOINT ["/bin/sh", "-c", "node /app/ganache-core.docker.cli.js --db /db --defaultBalanceEther 10000 --mnemonic \"$MNEMONIC\" --chainId $CHAINID"]
