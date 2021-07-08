@@ -72,14 +72,14 @@ interface IDelegation {
      * @param delegate Address delegated
      * @param role Permission Role
      */
-    event DSNPAddDelegate(address delegate, Role role);
+    event DSNPAddDelegate(address indexed delegate, Role role);
 
     /**
      * @dev Log for removal of a delegate
      * @param delegate Address revoked
      * @param endBlock Block number considered to be the end of the delegate permissions
      */
-    event DSNPRemoveDelegate(address delegate, uint64 endBlock);
+    event DSNPRemoveDelegate(address indexed delegate, uint64 endBlock);
 
     /**
      * @dev Add or change permissions for delegate
