@@ -21,41 +21,41 @@ contract TestDelegate is ERC165, IDelegation {
         delegateAddr = owner;
     }
 
-    function delegate(address newDelegate, Role role) external override {
+    function delegate(address, Role) external pure override {
         require(false, "Not implemented");
     }
 
     function delegateByEIP712Sig(
-        uint8 v,
-        bytes32 r,
-        bytes32 s,
-        DelegateAdd calldata change
-    ) external override {
+        uint8,
+        bytes32,
+        bytes32,
+        DelegateAdd calldata
+    ) external pure override {
         require(false, "Not implemented");
     }
 
-    function delegateRemove(address addr, uint64 endBlock) external override {
+    function delegateRemove(address, uint64) external pure override {
         require(false, "Not implemented");
     }
 
     function delegateRemoveByEIP712Sig(
-        uint8 v,
-        bytes32 r,
-        bytes32 s,
-        DelegateRemove calldata change
-    ) external override {
+        uint8,
+        bytes32,
+        bytes32,
+        DelegateRemove calldata
+    ) external pure override {
         require(false, "Not implemented");
     }
 
     function isAuthorizedTo(
         address addr,
-        Permission permission,
-        uint256 blockNumber
+        Permission,
+        uint256
     ) external view override returns (bool) {
         return addr == delegateAddr;
     }
 
-    function getNonceForDelegate(address addr) external view override returns (uint32) {
+    function getNonceForDelegate(address) external pure override returns (uint32) {
         require(false, "Not implemented");
         return 0;
     }
