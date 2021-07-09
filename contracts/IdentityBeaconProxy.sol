@@ -33,10 +33,10 @@ contract IdentityBeaconProxy is Proxy {
         bs.initialized = true;
 
         // Call Base Logic
-        (bool success, ) =
-            IBeacon(beacon).implementation().delegatecall(
-                abi.encodeWithSignature("initialize(address)", owner)
-            );
+        // solhint-disable avoid-low-level-calls
+        (bool success, ) = IBeacon(beacon).implementation().delegatecall(
+            abi.encodeWithSignature("initialize(address)", owner)
+        );
         require(success, "initialize failed");
     }
 
@@ -47,7 +47,7 @@ contract IdentityBeaconProxy is Proxy {
      */
     function _beaconData() internal pure returns (BeaconStorage storage beaconStorage) {
         bytes32 position = BEACON_SLOT;
-        /* solhint-disable no-inline-assembly */
+        // solhint-disable no-inline-assembly
         assembly {
             beaconStorage.slot := position
         }

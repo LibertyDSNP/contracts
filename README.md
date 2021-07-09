@@ -13,15 +13,15 @@ $ npm install @dsnp/contracts
 ### JavaScript ABI Usage
 
 ```javascript
-const announcer = require("@dsnp/contracts/abi/Announcer.json");
-const annoucerABI = announcer.abi;
+const publisher = require("@dsnp/contracts/abi/Publisher.json");
+const publisherABI = publisher.abi;
 
 ```
 ### TypeScript ABI Usage
 
 ```typescript
 // Requires "resolveJsonModule": true in [tsconfig](https://www.typescriptlang.org/tsconfig#resolveJsonModule)
-import { abi as announcerABI } from "@dsnp/contracts/abi/Announcer.json";
+import { abi as publisherABI } from "@dsnp/contracts/abi/Publisher.json";
 ```
 
 #### TypeScript Contract Types
@@ -37,23 +37,23 @@ To maintain types, it is suggested to use [TypeChain](https://github.com/ethereu
 ```typescript
 // web3 example
 import web3 from "web3";
-import { Announcer } from "./types/typechain/Announcer";
-import { abi as announcerABI } from "@dsnp/contracts/abi/Announcer.json";
+import { Publisher } from "./types/typechain/Publisher";
+import { abi as publisherABI } from "@dsnp/contracts/abi/Publisher.json";
 
-const getAnnouncerContract = (contractAddress: string) => {
+const getPublisherContract = (contractAddress: string) => {
   // web3 requires the type casts
-  return (new web3.eth.Contract(announcerABI, contractAddress) as any) as Announcer;
+  return (new web3.eth.Contract(publisherABI, contractAddress) as any) as Publisher;
 }
 ```
 
 ```typescript
 // ethersjsv5 example
 import { Provider } from "@ethersproject/providers";
-import { Announcer } from "./types/typechain/Announcer";
+import { Publisher } from "./types/typechain/Publisher";
 
-const getAnnouncerContract = (contractAddress: string, provider: Provider) => {
+const getPublisherContract = (contractAddress: string, provider: Provider) => {
   // TypeChain for Ethers provides factories
-  return Announcer__factory.connect(contractAddress, provider);
+  return Publisher__factory.connect(contractAddress, provider);
 }
 ```
 
@@ -64,9 +64,9 @@ Once installed, you can use the contracts in the library by importing them:
 ```solidity
 pragma solidity ^0.8.0;
 
-import "@dsnp/contracts/IAnnounce.sol";
+import "@dsnp/contracts/IPublish.sol";
 
-contract MyAnnouncer is IAnnounce {
+contract MyPublisher is IPublish {
     // ...
 }
 ```
