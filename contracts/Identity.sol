@@ -221,7 +221,7 @@ contract Identity is IDelegation, ERC165 {
      * @param endBlock Block number to consider the permissions terminated (MUST be > 0x0).
      *
      * MUST be called by the delegate, owner, or other delegate with permissions
-     * MUST store endBlock for response in isAuthorizedToAnnounce (exclusive)
+     * MUST store endBlock for response in isAuthorizedTo (exclusive)
      * MUST emit DSNPRemoveDelegate
      */
     function delegateRemove(address addr, uint64 endBlock) external override {
@@ -247,7 +247,7 @@ contract Identity is IDelegation, ERC165 {
      * @param change Change data containing new delegate address, endBlock, and nonce
      *
      * MUST be signed by the delegate, owner, or other delegate with permissions
-     * MUST store endBlock for response in isAuthorizedToAnnounce (exclusive)
+     * MUST store endBlock for response in isAuthorizedTo (exclusive)
      * MUST emit DSNPRemoveDelegate
      */
     function delegateRemoveByEIP712Sig(
@@ -340,10 +340,9 @@ contract Identity is IDelegation, ERC165 {
         bytes32 s,
         DelegateAdd calldata change
     ) internal view returns (address) {
-        bytes32 typeHash =
-            keccak256(
-                abi.encode(DELEGATE_ADD_TYPEHASH, change.nonce, change.delegateAddr, change.role)
-            );
+        bytes32 typeHash = keccak256(
+            abi.encode(DELEGATE_ADD_TYPEHASH, change.nonce, change.delegateAddr, change.role)
+        );
         return signerFromHashStruct(v, r, s, typeHash);
     }
 
@@ -361,15 +360,9 @@ contract Identity is IDelegation, ERC165 {
         bytes32 s,
         DelegateRemove calldata change
     ) internal view returns (address) {
-        bytes32 typeHash =
-            keccak256(
-                abi.encode(
-                    DELEGATE_REMOVE_TYPEHASH,
-                    change.nonce,
-                    change.delegateAddr,
-                    change.endBlock
-                )
-            );
+        bytes32 typeHash = keccak256(
+            abi.encode(DELEGATE_REMOVE_TYPEHASH, change.nonce, change.delegateAddr, change.endBlock)
+        );
         return signerFromHashStruct(v, r, s, typeHash);
     }
 
@@ -387,10 +380,9 @@ contract Identity is IDelegation, ERC165 {
         bytes32 s,
         bytes32 hashStruct
     ) internal view returns (address) {
-        bytes32 digest =
-            keccak256(
-                abi.encodePacked("\x19\x01", _delegationData().domainSeparatorHash, hashStruct)
-            );
+        bytes32 digest = keccak256(
+            abi.encodePacked("\x19\x01", _delegationData().domainSeparatorHash, hashStruct)
+        );
         return ecrecover(digest, v, r, s);
     }
 }

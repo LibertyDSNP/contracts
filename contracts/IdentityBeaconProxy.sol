@@ -33,10 +33,9 @@ contract IdentityBeaconProxy is Proxy {
         bs.initialized = true;
 
         // Call Base Logic
-        (bool success, ) =
-            IBeacon(beacon).implementation().delegatecall(
-                abi.encodeWithSignature("initialize(address)", owner)
-            );
+        (bool success, ) = IBeacon(beacon).implementation().delegatecall(
+            abi.encodeWithSignature("initialize(address)", owner)
+        );
         require(success, "initialize failed");
     }
 

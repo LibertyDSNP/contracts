@@ -28,7 +28,7 @@ interface IDelegation {
          */
         NONE,
         /**
-         * @dev 0x1 Announce any DSNP message
+         * @dev 0x1 Sign a DSNP Announcement
          */
         ANNOUNCE,
         /**
@@ -116,7 +116,7 @@ interface IDelegation {
      * @param endBlock Block number to consider the permissions terminated (MUST be > 0x0).
      *
      * MUST be called by the delegate, owner, or other delegate with permissions
-     * MUST store endBlock for response in isAuthorizedToAnnounce (exclusive)
+     * MUST store endBlock for response in isAuthorizedTo (exclusive)
      * MUST emit DSNPRemoveDelegate
      */
     function delegateRemove(address addr, uint64 endBlock) external;
@@ -129,7 +129,7 @@ interface IDelegation {
      * @param change Change data containing new delegate address, endBlock, and nonce
      *
      * MUST be signed by the delegate, owner, or other delegate with permissions
-     * MUST store endBlock for response in isAuthorizedToAnnounce (exclusive)
+     * MUST store endBlock for response in isAuthorizedTo (exclusive)
      * MUST emit DSNPRemoveDelegate
      */
     function delegateRemoveByEIP712Sig(

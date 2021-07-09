@@ -304,15 +304,14 @@ contract Registry is IRegistry {
         bytes32 s,
         AddressChange calldata change
     ) internal view returns (address) {
-        bytes32 typeHash =
-            keccak256(
-                abi.encode(
-                    ADDRESS_CHANGE_TYPEHASH,
-                    change.nonce,
-                    change.addr,
-                    keccak256(bytes(change.handle))
-                )
-            );
+        bytes32 typeHash = keccak256(
+            abi.encode(
+                ADDRESS_CHANGE_TYPEHASH,
+                change.nonce,
+                change.addr,
+                keccak256(bytes(change.handle))
+            )
+        );
         return signerFromHashStruct(v, r, s, typeHash);
     }
 
@@ -330,15 +329,14 @@ contract Registry is IRegistry {
         bytes32 s,
         HandleChange calldata change
     ) internal view returns (address) {
-        bytes32 typeHash =
-            keccak256(
-                abi.encode(
-                    HANDLE_CHANGE_TYPEHASH,
-                    change.nonce,
-                    keccak256(bytes(change.oldHandle)),
-                    keccak256(bytes(change.newHandle))
-                )
-            );
+        bytes32 typeHash = keccak256(
+            abi.encode(
+                HANDLE_CHANGE_TYPEHASH,
+                change.nonce,
+                keccak256(bytes(change.oldHandle)),
+                keccak256(bytes(change.newHandle))
+            )
+        );
         return signerFromHashStruct(v, r, s, typeHash);
     }
 

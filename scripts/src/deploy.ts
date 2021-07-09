@@ -20,14 +20,14 @@ export async function main() {
   // Emit DSNP migration event for the Migrations contract
   await contract1.upgraded(contract1.address, "Migrations");
 
-  // Deploy the Announcer Contract
-  const Announcer = await ethers.getContractFactory("Announcer");
-  const announcer = await Announcer.deploy();
-  await announcer.deployed();
-  console.log("announcer deployed to:", announcer.address);
+  // Deploy the Publisher Contract
+  const Publisher = await ethers.getContractFactory("Publisher");
+  const publisher = await Publisher.deploy();
+  await publisher.deployed();
+  console.log("publisher deployed to:", publisher.address);
 
-  // Emit DSNP migration event for the Announcer contract
-  await contract1.upgraded(announcer.address, "Announcer");
+  // Emit DSNP migration event for the Publisher contract
+  await contract1.upgraded(publisher.address, "Publisher");
 
   // Deploy the Identity Logic Contract
   const Identity = await ethers.getContractFactory("Identity");
