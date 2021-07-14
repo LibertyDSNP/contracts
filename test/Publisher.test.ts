@@ -14,13 +14,19 @@ describe("publisher", () => {
     });
 
     it("batch emits a DSNPBatchPublication event", async () => {
-      await expect(publisher.publish([{ hash: hash, url: "http://x.com", dsnpType: 1 }]))
+      await expect(
+        publisher.publish([{ fileHash: hash, fileUrl: "http://x.com", announcementType: 1 }])
+      )
         .to.emit(publisher, "DSNPBatchPublication")
         .withArgs(1, hash, "http://x.com");
     });
 
     it("reverts when batch size is greater or equal to 100", async () => {
-      const batch = Array(100).fill({ hash: hash, url: "http://x.com", dsnpType: 1 });
+      const batch = Array(100).fill({
+        fileHash: hash,
+        fileUrl: "http://x.com",
+        announcementType: 1,
+      });
 
       await expect(publisher.publish(batch)).to.be.revertedWith("gas consumption is high");
     });

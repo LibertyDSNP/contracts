@@ -5,15 +5,15 @@ import "./IPublish.sol";
 
 contract Publisher is IPublish {
     /**
-     * @param publications Array of Batch structs to publish
+     * @param publications Array of Publication structs to publish
      */
-    function publish(Batch[] calldata publications) external override {
+    function publish(Publication[] calldata publications) external override {
         require(publications.length < 100, "gas consumption is high");
         for (uint256 i = 0; i < publications.length; i++) {
             emit DSNPBatchPublication(
-                publications[i].dsnpType,
-                publications[i].hash,
-                publications[i].url
+                publications[i].announcementType,
+                publications[i].fileHash,
+                publications[i].fileUrl
             );
         }
     }
