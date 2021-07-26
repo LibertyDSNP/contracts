@@ -3,8 +3,8 @@
 //
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-// import { ethers } from "hardhat";
-import hre from "hardhat"
+
+const hre = require("hardhat")
 const ethers = hre.ethers
 export async function main() {
 
