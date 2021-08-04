@@ -260,7 +260,7 @@ contract Registry is IRegistry {
      * @dev Resolve a handle to a DSNP Id and contract address
      * @param handle The handle to resolve
      *
-     * rejects if not found
+     * Returns zeros if not found
      * @return A tuple of the DSNP Id and the Address of the contract
      */
     function resolveRegistration(string calldata handle)
@@ -271,7 +271,7 @@ contract Registry is IRegistry {
     {
         Registration memory reg = registrations[handle];
 
-        require(reg.id != 0, "Handle does not exist");
+        if (reg.id == 0) return (0, address(0));
 
         return (reg.id, reg.identityAddress);
     }

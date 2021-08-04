@@ -4,6 +4,8 @@ The official DSNP interface and implementations.
 
 ## Overview
 
+**Target DSNP Spec Version**: v0.9.1
+
 ### Installation
 
 ```console

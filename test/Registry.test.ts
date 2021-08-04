@@ -271,10 +271,9 @@ describe("Registry", () => {
 
     it("clears old handle and frees it for registration", async () => {
       await registry.connect(signer1).changeHandle(handle, newHandle);
-
-      await expect(registry.resolveRegistration(handle)).to.be.revertedWith(
-        "Handle does not exist"
-      );
+      const [id, addr] = await registry.resolveRegistration(handle);
+      expect(addr).to.equal("0x0000000000000000000000000000000000000000");
+      expect(id).to.equal("0x00");
 
       await expect(registry.connect(signer2).register(delegate2.address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
@@ -336,9 +335,9 @@ describe("Registry", () => {
       const { v, r, s } = await signEIP712(signer1, registryDomain, handleChangeTypes, message);
       await registry.connect(signer2).changeHandleByEIP712Sig(v, r, s, message);
 
-      await expect(registry.resolveRegistration(handle)).to.be.revertedWith(
-        "Handle does not exist"
-      );
+      const [id, addr] = await registry.resolveRegistration(handle);
+      expect(addr).to.equal("0x0000000000000000000000000000000000000000");
+      expect(id).to.equal("0x00");
 
       await expect(registry.connect(signer2).register(delegate2.address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
