@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run hardhat:clean && npm run hardhat:compile",
+    "clean": "npx hardhat clean",
+    "build": "npm run clean && npx hardhat compile",
     "hardhat": "hardhat",
-    "hardhat:clean": "hardhat clean",
-    "hardhat:compile": "hardhat compile",
-    "hardhat:console": "hardhat console",
+    "console": "hardhat console",
     "test": "NODE_ENV=test hardhat test",
+    "deploy:devnet": "hardhat run ./scripts/deploy.ts --network devnet --verbose",
     "deploy:testnet": "hardhat run ./scripts/deploy.ts --network testnet --verbose",
     "deploy:localhost": "hardhat run ./scripts/deploy.ts --network localhost --verbose",
     "docker:create": "docker build . -t liberty-blockchain-node && docker container create --env-file ./docker/.env -p 8549:8545 -p 8550:8546 -p 30305:30303 -p 30305:30303/udp --name liberty-chain-node liberty-blockchain-node:latest",
@@ -57,6 +57,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.2.0"
+    "@openzeppelin/contracts": "^4.2.0",
+    "hardhat-ethernal": "^0.3.7"
   }
 }
