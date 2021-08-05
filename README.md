@@ -156,8 +156,10 @@ Exposed Port: 8545
 These are set up in the [hardhat.config.ts](https://hardhat.org/config/#hardhat-network) file.
 If you need different accounts, please build a different image with a different mnemonic.  Set the chain ID to your choice.
 
+If you wish to use a different seed phrase from what is in this repo, there are BIP39 tools to generate a valid one, such as [Ian Coleman's online tool](https://iancoleman.io/bip39/#english). Please note the below seed phrase is not valid and is only for illustration purposes.
+
 ```
-MNEMONIC="this is some other mnemonic test test test"
+MNEMONIC="your valid test seed phrase here test test test test test junk"
 CHAINID="31337"
 ```
 ### evm_snapshot/evm_revert
@@ -180,11 +182,30 @@ Remember:
 | BOOTNODE | enode address of the node our node would like to connect to. Docker nodes only. |
     
 ## Accounts
-When a node is started, test accounts will be created and their addresses + private keys are emitted to the console.
+When a node is started, test accounts will be created and their addresses + private keys are emitted to the console.  These can be used for testing, as environment variables, imported into Metamask for test logins, etc. Note these accounts are not usable on any network but test networks using the test seed provided when you launched your node.
 
 ## Ports
 The default port is `:8545`
 
 ## Development
 * This repo uses [Hardhat](https://hardhat.org/getting-started/) + [ethers](https://docs.ethers.io/v5/) for interfacing with Ethereum,
-* [Waffle](https://ethereum-waffle.readthedocs.io/en/latest/index.html) for testing,
+* [Waffle](https://ethereum-waffle.readthedocs.io/en/latest/index.html) for testing
+
+## Troubleshooting
+* **`ELIFECYCLE` eror when deploying contracts** - if you see the following:
+```hardhat:core:hre Creating provider for network localhost +113ms
+provider connection { url: 'http://localhost:8545' }
+TypeError: Cannot read property 'address' of undefined
+    at Object.<anonymous> (/home/allison/projects/git/ots/dsnp/contracts/scripts/src/deploy.ts:12:65)
+    at step (/home/allison/projects/git/ots/dsnp/contracts/scripts/src/deploy.ts:33:23)
+    at Object.next (/home/allison/projects/git/ots/dsnp/contracts/scripts/src/deploy.ts:14:53)
+    at fulfilled (/home/allison/projects/git/ots/dsnp/contracts/scripts/src/deploy.ts:5:58)
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+  hardhat:core:scripts-runner Script ./scripts/deploy.ts exited with status code 1 +2s
+  hardhat:core:cli Killing Hardhat after successfully running task run +0ms
+npm ERR! code ELIFECYCLE
+npm ERR! errno 1
+npm ERR! contracts@1.0.0 deploy:localhost: `hardhat run ./scripts/deploy.ts --network localhost --verbose`
+npm ERR! Exit status 1
+```
+You probably did not create or did not correctly create a `.env` file. Make sure this file exists at the top of the repo and that has the correct values.  See `.env.sample` and the [Environment Variables](#environment-variables) table.
