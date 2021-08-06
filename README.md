@@ -123,45 +123,9 @@ To find out what version of the contracts package you are using:
 $ npm ls --all | grep "@dsnp/contracts"
 ```
 
-### Ganache Based Docker
+There are multiple images you can use for different purposes.
+See [docker/README.md](./docker/README.md) for more details. 
 
-Our Ganache Based Docker Image has the contracts pre-installed on the [ganache-cli](https://github.com/trufflesuite/ganache-cli/) chain.
-It is a small image designed for CI contexts.
-https://hub.docker.com/r/dsnp/ganache/tags
-
-Exposed Port: 8545
-
-#### Ganache Build Arguments
-
-As the Ganache image comes with the chain pre-started (for the small image size), accounts are pre-set.
-If you need to use a different mnemonic or chain id, please use the ganache.Dockerfile to build a new image.
-
-```
-MNEMONIC="test test test test test test test test test test test junk"
-DEPLOY_PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-CHAINID="31337"
-```
-
-### Hardhat Based Docker
-
-Our Hardhat Based Docker Image will run the [Hardhat Network](https://hardhat.org/hardhat-network/) and deploys the contracts at run time.
-The Hardhat network has various advantages such as better stack traces, but is a much larger image and designed for local development.
-
-https://hub.docker.com/r/dsnp/hardhat/tags
-
-Exposed Port: 8545
-
-## Test Accounts 
-
-These are set up in the [hardhat.config.ts](https://hardhat.org/config/#hardhat-network) file.
-If you need different accounts, please build a different image with a different mnemonic.  Set the chain ID to your choice.
-
-If you wish to use a different seed phrase from what is in this repo, there are BIP39 tools to generate a valid one, such as [Ian Coleman's online tool](https://iancoleman.io/bip39/#english). Please note the below seed phrase is not valid and is only for illustration purposes.
-
-```
-MNEMONIC="your valid test seed phrase here test test test test test junk"
-CHAINID="31337"
-```
 ### evm_snapshot/evm_revert
 
 Both Hardhat and Ganache test chains support snapshot and revert. Learn more in the [ganache docs](https://github.com/trufflesuite/ganache-cli/#custom-methods).
@@ -169,23 +133,6 @@ Both Hardhat and Ganache test chains support snapshot and revert. Learn more in 
 Remember:
 > A snapshot can only be used once. After a successful evm_revert, the same snapshot id cannot be used again.
 > Consider creating a new snapshot after each evm_revert if you need to revert to the same point multiple times.
-
-## Environment Variables
-
-|Env Variable Name      | Description | 
-| ------------- | -----------  | 
-| LOCAL_PRIVATE_KEY         | private key for an account we have on our local network that has eth. All node configurations.   | 
-| STAGENET_PRIVATE_KEY       | private key for an account we have on our staging network that has eth. For connections to stagenet only. |
-| STAGENET_CHAIN_URL     | Url to connect to staging network. For connections to stagenet only.        |     
-| VALIDATOR1 | hex prefixed address for validator running on node called liberty-chain. Docker POA net only. |
-| VALIDATOR2 | hex prefixed address for validator running on node called liberty-chain1. Docker POA net only.
-| BOOTNODE | enode address of the node our node would like to connect to. Docker nodes only. |
-    
-## Accounts
-When a node is started, test accounts will be created and their addresses + private keys are emitted to the console.  These can be used for testing, as environment variables, imported into Metamask for test logins, etc. Note these accounts are not usable on any network but test networks using the test seed provided when you launched your node.
-
-## Ports
-The default port is `:8545`
 
 ## Development
 * This repo uses [Hardhat](https://hardhat.org/getting-started/) + [ethers](https://docs.ethers.io/v5/) for interfacing with Ethereum,

@@ -1,0 +1,118 @@
+{
+  "name": "dev",
+  "engine": {
+      "instantSeal": {
+        "params": {}
+      }
+  },
+  "params": {
+    "gasLimitBoundDivisor": "0x400",
+    "maximumExtraDataSize": "0x20",
+    "minGasLimit": "0x1388",
+    "networkID": "0x75B",
+    "chainID": "0x7A69",
+    "validateChainIdTransition": 0,
+    "validateReceiptsTransition": 0,
+    "eip98Transition": 0,
+    "eip140Transition": 0,
+    "eip145Transition": 0,
+    "eip150Transition": 0,
+    "eip155Transition": 0,
+    "eip160Transition": 0,
+    "eip161abcTransition": 0,
+    "eip161dTransition": 0,
+    "eip210Transition": 0,
+    "eip211Transition": 0,
+    "eip214Transition": 0,
+    "eip658Transition": 0,
+    "eip1014Transition": 0,
+    "eip1052Transition": 0,
+    "eip1706Transition": 0,
+    "eip1283Transition": 0,
+    "eip1283DisableTransition": 0,
+    "eip1283ReenableTransition": 0,
+    "eip1344Transition": 0,
+    "eip1884Transition": 0,
+    "eip2028Transition": 0,
+    "eip2315Transition": 0,
+    "eip2929Transition": 0,
+    "eip2930Transition": 0,
+    "eip1559Transition": "0x1",
+    "eip3198Transition": 0,
+    "eip3529Transition": 0,
+    "eip3541Transition": 0,
+    "eip1559BaseFeeMaxChangeDenominator": "0x8",
+    "eip1559ElasticityMultiplier": "0x2",
+    "eip1559BaseFeeInitialValue": "0x0"
+  },
+  "genesis": {
+    "seal": {
+      "authorityRound": {
+        "step": "0x0",
+        "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "difficulty": "0x20000",
+    "gasLimit": "0x989680"
+  },
+  "accounts": {
+    "0x0000000000000000000000000000000000000001": {
+      "balance": "1",
+      "builtin": {
+        "name": "ecrecover",
+        "pricing": {
+          "linear": {
+            "base": 3000,
+            "word": 0
+          }
+        }
+      }
+    },
+    "0x0000000000000000000000000000000000000002": {
+      "balance": "1",
+      "builtin": {
+        "name": "sha256",
+        "pricing": {
+          "linear": {
+            "base": 60,
+            "word": 12
+          }
+        }
+      }
+    },
+    "0x0000000000000000000000000000000000000003": {
+      "balance": "1",
+      "builtin": {
+        "name": "ripemd160",
+        "pricing": {
+          "linear": {
+            "base": 600,
+            "word": 120
+          }
+        }
+      }
+    },
+    "0x0000000000000000000000000000000000000004": {
+      "balance": "1",
+      "builtin": {
+        "name": "identity",
+        "pricing": {
+          "linear": {
+            "base": 15,
+            "word": 3
+          }
+        }
+      }
+    },
+    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266":  { "balance":  "10000000000000000000000"},
+    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8": { "balance":  "10000000000000000000000"},
+    "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC":  { "balance":  "10000000000000000000000"},
+    "0x90F79bf6EB2c4f870365E785982E1f101E93b906": { "balance":  "10000000000000000000000"},
+    "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65":  { "balance":  "10000000000000000000000"},
+    "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc": { "balance":  "10000000000000000000000"},
+    "0x976EA74026E726554dB657fA54763abd0C3a0aa9":  { "balance":  "10000000000000000000000"},
+    "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955": { "balance":  "10000000000000000000000"},
+    "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f":  { "balance":  "10000000000000000000000"},
+    "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720": { "balance":  "10000000000000000000000"}
+  }
+}
