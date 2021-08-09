@@ -14,15 +14,11 @@ Different containers are for different use cases.
 | --- | --- |
 | Chain Id | 31337 (0x7A69) |
 | RPC Port | 8545 |
+| Mnemonic for funded accounts | `test test test test test test test test test test test junk` |
 
-## OpenEthereum
+## Default Accounts
 
-Uses OpenEthereum with instant sealing.
-**Does NOT** support `evm_snapshot`/`evm_revert`.
-
-### Accounts
-
-The first 10 accounts from Mnemonic `test test test test test test test test test test test junk` have a pile of ether.
+The first 10 accounts from mnemonic `test test test test test test test test test test test junk`:
 
 | Ethereum Addresses                         | Private Key                                                        |
 | --- | --- |
@@ -37,6 +33,15 @@ The first 10 accounts from Mnemonic `test test test test test test test test tes
 | 0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f | 0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97 |
 | 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 | 0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6 |
 
+## OpenEthereum
+
+Uses OpenEthereum with instant sealing.
+**Does NOT** support `evm_snapshot`/`evm_revert`.
+
+### Accounts
+
+Uses the default mnemonic (`test test test test test test test test test test test junk`), see [Default Accounts](#Default-Accounts).
+
 ## Hardhat
 
 Uses the [Hardhat Network](https://hardhat.org/hardhat-network/) and runs using the hardhat.config.ts file.
@@ -44,7 +49,8 @@ Supports `evm_snapshot`/`evm_revert`.
 
 ### Accounts
 
-Same as OpenEthereum.
+When a node is started, test accounts will be created and their addresses + private keys are emitted to the console.
+Uses the default mnemonic (`test test test test test test test test test test test junk`), see [Default Accounts](#Default-Accounts).
 
 ## Ganache
 
@@ -63,4 +69,22 @@ Supports `evm_snapshot`/`evm_revert`.
 
 ### Accounts
 
-With the default `MNEMONIC`, same as OpenEtheruem.
+When a node is started, test accounts will be created and their addresses + private keys are emitted to the console.
+With the default `MNEMONIC`, see [Default Accounts](#Default-Accounts).
+
+## Building the Containers
+
+Containers are built from the root of the repository.
+
+| Version | Build | Image |
+| --- | --- | --- |
+| OpenEthereum | `docker build . -f openethereum.Dockerfile -t [tag here]` | [dsnp/openethereum](https://hub.docker.com/r/dsnp/openethereum) |
+| Hardhat | `docker build . -f hardhat.Dockerfile -t [tag here]` | [dsnp/hardhat](https://hub.docker.com/r/dsnp/hardhat) |
+| Ganache | `docker build . -f ganache.Dockerfile -t [tag here]` | [dsnp/ganache](https://hub.docker.com/r/dsnp/ganache) |
+
+## Docker Hub Versions
+
+| Tag | Meaning |
+| --- | --- |
+| latest | Latest released version of the contracts |
+| next | Latest `main` branch version of the contracts |
