@@ -74,7 +74,18 @@ jobs:
             dsnp/hardhat:latest
             dsnp/hardhat:${{ github.event.release.tag_name }}
 
+      - name: Build and push dsnp/openethereum:latest
+        id: docker_build_openethereum
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          file: openethereum.Dockerfile
+          tags: |
+            dsnp/openethereum:latest
+            dsnp/openethereum:${{ github.event.release.tag_name }}
+
       - name: Image digests
         run: |
           echo dsnp/hardhat ${{ steps.docker_build_hardhat.outputs.digest }}
           echo dsnp/ganache ${{ steps.docker_build_ganache.outputs.digest }}
+          echo dsnp/openethereum ${{ steps.docker_build_openethereum.outputs.digest }}
