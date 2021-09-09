@@ -2,9 +2,34 @@
 
 The official DSNP interface and implementations.
 
+## Contract Deployments
+
+### Rinkeby
+
+| Contract | Version | Address |
+| --- | --- | --- |
+| Migrations | v1.0.1 | `0xF95Ecefa916EA32FE9e83266b3f8Bfb78c4De264` |
+| Publisher | v1.0.1 | `0xeF7B5d418128fB8C1645Dd31270BE2cCAF9015e4` |
+| Identity | v1.0.1 | `0xa067CEa2859d27CA83700c7E17414f111C1BF561` |
+| Registry | v1.0.1 | `0x5d8266342aAfe19CB8EC25A6637f385893389A35` |
+| Identity Clone Factory | v1.0.1 | `0xDf962f3C24863A0fb8fb77B3144E31fE2859b9B8` |
+| Beacon | v1.0.1 | `0xe3B7Fb9c43F9E62910Ae2763AA64aec07ec8F308` |
+| Beacon Factory | v1.0.1 | `0xC1F8593D46356B98c5DC7f7E8DF35247A68ED7D8` |
+
+### Ropsten
+| Contract | Version | Address |
+| --- | --- | --- |
+| Migrations | v1.0.1 | `0x9A8e553dEcBBD72c1a6584eD059Bd18b181e52fA` |
+| Publisher | v1.0.1 | `0x9828b9c8E8863267508eB0235370Eb26914D6a78` |
+| Identity | v1.0.1 | `0x33707b57CE4Af9f970fb04a4D6CFF15B8342D938` |
+| Registry | v1.0.1 | `0xEBF48cE1EE0e727C2E23cb977799B93fD2EbFfda` |
+| Identity Clone Factory | v1.0.1 | `0x61F57538a2621Dd2ba36E513e11cDe4f5936bCe9` |
+| Beacon | v1.0.1 | `0x307748fF8c3547a6768B0CD37c1b0F35fFB0ca47` |
+| Beacon Factory | v1.0.1 | `0x024a03CFE1e8EE563382C08C1aB359830c39Cf20` |
+
 ## Overview
 
-**Target DSNP Spec Version**: v0.9.1
+**Target DSNP Spec Version**: v1.0.0
 
 ### Installation
 To install this package in your repo:
