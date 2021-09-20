@@ -87,12 +87,12 @@ cp .env.sample .env       # to edit once you have launched a node
 
 ### To deploy a local Hardhat node with contracts
 The simplest way to launch a test node is to run a local hardhat node.
-                
+
 Spin up a node with:
 ```console
 npx hardhat node
 ```
-This will output a list of initialized test accounts and their private keys. 
+This will output a list of initialized test accounts and their private keys.
 1. Choose and copy an account private key
 1. Edit `.env` and set LOCAL_PRIVATE_KEY to the key you just copied:
 ```shell
@@ -124,9 +124,9 @@ $ npm ls --all | grep "@dsnp/contracts"
 ```
 
 There are multiple images you can use for different purposes.
-See [docker/README.md](./docker/README.md) for more details. 
+See [docker/README.md](./docker/README.md) for more details.
 
-## Test Accounts 
+## Test Accounts
 
 These are set up in the [hardhat.config.ts](https://hardhat.org/config/#hardhat-network) file.
 If you need different accounts, please build a different image with a different mnemonic.  Set the chain ID to your choice.
@@ -176,7 +176,7 @@ The default port is `:8545`
 * [Waffle](https://ethereum-waffle.readthedocs.io/en/latest/index.html) for testing
 
 ## Troubleshooting
-* **`ELIFECYCLE` eror when deploying contracts** - if you see the following:
+* **`ELIFECYCLE` error when deploying contracts** - if you see the following:
 ```hardhat:core:hre Creating provider for network localhost +113ms
 provider connection { url: 'http://localhost:8545' }
 TypeError: Cannot read property 'address' of undefined
@@ -192,4 +192,4 @@ npm ERR! errno 1
 npm ERR! contracts@1.0.0 deploy:localhost: `hardhat run ./scripts/deploy.ts --network localhost --verbose`
 npm ERR! Exit status 1
 ```
-You probably did not create or did not correctly create a `.env` file. Make sure this file exists at the top of the repo and that has the correct values.  See `.env.sample` and the [Environment Variables](#environment-variables) table.
+You probably did not create or did not correctly create a `.env` file. Make sure this file exists at the top of the repo and that has the correct values.  See `.env.sample` and the [development and deploy instructions](#development).
