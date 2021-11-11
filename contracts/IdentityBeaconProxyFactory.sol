@@ -10,11 +10,10 @@ import "./IRegistry.sol";
 
 contract IdentityBeaconProxyFactory is IIdentityBeaconFactory {
     address private immutable defaultBeacon;
-    address private immutable registry;
 
-    constructor(address _beaconAddr, address _registry) {
+    // this should actually be the byteCode
+    constructor(bytes32 _beaconAddr, address _registry) {
         defaultBeacon = _beaconAddr;
-        registry = _registry;
     }
 
     /**
@@ -25,40 +24,6 @@ contract IdentityBeaconProxyFactory is IIdentityBeaconFactory {
     }
 
     /**
-     * @dev Creates a new identity with the message sender as the owner
-     *      Uses the beacon defined by getBeacon()
-     * @return The address of the newly created Identity
-     */
-    function createBeaconProxy() external override returns (address) {
-        // Effects
-        // TODO: Why is this not part of the constrctor?
-        IdentityBeaconProxy proxy = new IdentityBeaconProxy();
-        emit ProxyCreated(address(proxy));
-
-        // Interactions
-        proxy.initialize(defaultBeacon, msg.sender);
-
-        return address(proxy);
-    }
-
-    /**
-     * @dev Creates a new identity with the message sender as the owner
-     * @param beacon The beacon address to use for identity creation
-     *
-     * @return The address of the newly created Identity
-     */
-    function createBeaconProxy(address beacon) external override returns (address) {
-        // Effects
-        IdentityBeaconProxy proxy = new IdentityBeaconProxy();
-        emit ProxyCreated(address(proxy));
-
-        // Interactions
-        proxy.initialize(beacon, msg.sender);
-
-        return address(proxy);
-    }
-
-    /**
      * @dev Creates a new identity with the ecrecover address as the owner
      * @param beacon The beacon address to use logic contract resolution
      * @param owner The initial owner's address of the new contract
@@ -66,30 +31,28 @@ contract IdentityBeaconProxyFactory is IIdentityBeaconFactory {
      * @dev This MUST emit ProxyCreated with the address of the new proxy contract
      * @return The address of the newly created proxy contract
      */
-    function createBeaconProxyWithOwner(address beacon, address owner)
+    function createBeaconProxyWithOwner(address owner)
         external
         override
         returns (address)
     {
-        return createProxy(beacon, owner);
+        address proxy = createClone();
+        // set the owner for the proxy here by
+
+
+        return proxy;
     }
 
-    /**
-     * @dev Creates a new identity with the ecrecover address as the owner
-     * @param beacon The beacon address to use logic contract resolution
-     * @param owner The initial owner's address of the new contract
-     *
-     * @dev This MUST emit ProxyCreated with the address of the new proxy contract
-     * @return The address of the newly created proxy contract
-     */
-    function createProxy(address beacon, address owner) private returns (address) {
-        // Effects
-        IdentityBeaconProxy proxy = new IdentityBeaconProxy();
-        emit ProxyCreated(address(proxy));
-
-        // Interactions
-        proxy.initialize(beacon, owner);
-
-        return address(proxy);
+    function createClone() internal returns (address result) {
+        bytes20 targetBytes = bytes20(target);
+        // 363d3d373d3d3d363d73bebebebebebebebebebebebebebebebebebebebe5af43d82803e903d91602b57fd5bf3
+        assembly {
+            let clone := mload(0x40)
+            mstore(clone, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+            mstore(add(clone, 0x14), defaultBeacon)
+            mstore(add(clone, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
+            result := create(0, clone, 0x37)
+        }
     }
+
 }

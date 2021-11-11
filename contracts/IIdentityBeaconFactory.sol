@@ -18,24 +18,6 @@ interface IIdentityBeaconFactory {
     function getBeacon() external view returns (address);
 
     /**
-     * @dev Creates a new identity with the message sender as the owner
-     *      Uses the beacon defined by getBeacon()
-     *
-     * @dev This MUST emit ProxyCreated with the address of the new proxy contract
-     * @return The address of the newly created proxy contract
-     */
-    function createBeaconProxy() external returns (address);
-
-    /**
-     * @dev Creates a new identity with the message sender as the owner
-     * @param beacon The beacon address to use for logic contract resolution
-     *
-     * @dev This MUST emit ProxyCreated with the address of the new proxy contract
-     * @return The address of the newly created proxy contract
-     */
-    function createBeaconProxy(address beacon) external returns (address);
-
-    /**
      * @dev Creates a new identity with the ecrecover address as the owner
      * @param beacon The beacon address to use logic contract resolution
      * @param owner The initial owner's address of the new contract
@@ -43,5 +25,5 @@ interface IIdentityBeaconFactory {
      * @dev This MUST emit ProxyCreated with the address of the new proxy contract
      * @return The address of the newly created proxy contract
      */
-    function createBeaconProxyWithOwner(address beacon, address owner) external returns (address);
+    function createBeaconProxyWithOwner(address owner) external returns (address);
 }
