@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.8.0 <0.9.0;
 
+// https://docs.openzeppelin.com/contracts/4.x/api/proxy#Proxy
 import "@openzeppelin/contracts/proxy/Proxy.sol";
+
+
 import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 
-contract IdentityBeaconProxy is Proxy {
+// This contract points to an IdentityBeacon. It is also upgradeable
+// (as it obviously also inherits from UpgradeableBeacon)
+contract IdentityBeaconProxy is Proxy, UpgradeableBeacon {
     /**
      * @dev Storage for the delegation data
      */
@@ -13,6 +18,9 @@ contract IdentityBeaconProxy is Proxy {
         bool initialized;
     }
 
+    //  Slot used to prevent memory collisions for proxy contracts, see
+    //  https://blog.openzeppelin.com/upgradeability-using-unstructured-storage/
+    //  a -1 offset is added so the preimage of the hash cannot be known, further reducing the chances of a possible attack.
     bytes32 private constant BEACON_SLOT = bytes32(uint256(keccak256("dsnp.org.beacon")) - 1);
 
     function _implementation() internal view override returns (address) {
@@ -42,7 +50,6 @@ contract IdentityBeaconProxy is Proxy {
 
     /**
      * @dev Return the beacon address variable
-     *      Slot used to prevent memory collisions for proxy contracts
      * @return beaconStorage address of the beacon for the logic contract
      */
     function _beaconData() internal pure returns (BeaconStorage storage beaconStorage) {
