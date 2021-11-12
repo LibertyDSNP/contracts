@@ -19,7 +19,6 @@ interface IIdentityBeaconFactory {
 
     /**
      * @dev Creates a new identity with the ecrecover address as the owner
-     * @param beacon The beacon address to use logic contract resolution
      * @param owner The initial owner's address of the new contract
      *
      * @dev This MUST emit ProxyCreated with the address of the new proxy contract

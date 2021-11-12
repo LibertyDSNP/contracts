@@ -3,12 +3,13 @@ pragma solidity >=0.8.0 <0.9.0;
 
 // https://docs.openzeppelin.com/contracts/4.x/api/proxy#Proxy
 import "@openzeppelin/contracts/proxy/Proxy.sol";
+import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 
 import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 
-// This contract points to an IdentityBeacon. It is also upgradeable
-// (as it obviously also inherits from UpgradeableBeacon)
+// This contract stores an address to an IdentityBeacon,
+// which has its delegation+authorization logic
 contract IdentityBeaconProxy is Proxy, UpgradeableBeacon {
     /**
      * @dev Storage for the delegation data

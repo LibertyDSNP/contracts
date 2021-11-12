@@ -34,7 +34,7 @@ describe("IdentityBeaconProxy", () => {
     testDelegate = await TestDelegate.deploy(signer.address);
     await testDelegate.deployed();
 
-    const Beacon = await ethers.getContractFactory("Beacon");
+    const Beacon = await ethers.getContractFactory("IdentityBeacon");
     beaconInstance = await Beacon.deploy(testDelegate.address);
     await beaconInstance.deployed();
 

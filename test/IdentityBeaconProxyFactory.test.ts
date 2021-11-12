@@ -41,7 +41,7 @@ const getDSNPRegistryUpdateFromResponse = async (
   };
 };
 
-describe("BeaconFactory", () => {
+describe("IdentityBeaconProxyFactory", () => {
   let factoryInstance, beaconInstance, identityInstance;
   let deployer, signer;
   const noMoneyAddress = "0x0A7D8ED2973c7495E043d5a7fe37684e51Dc707D";
