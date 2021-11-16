@@ -166,7 +166,7 @@ async function sign(
       signature = { r, s, v };
     }
   } catch (e) {
-    throw new Error(e);
+    throw e;
   }
 
   return signature;
