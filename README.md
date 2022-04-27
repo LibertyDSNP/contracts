@@ -126,6 +126,16 @@ LOCAL_PRIVATE_KEY=0xabcd1234567890
 From another terminal, run:
 `npm run deploy:localhost`
 
+### Troubleshooting
+If you run into an error when running `hardhat:compile` that looks like this:
+
+```console
+Invalid value for HardhatConfig.networks.localhost - Expected a value of type HttpNetworkConfig.
+```
+
+It means your `STAGENET_PRIVATE_KEY` and `STAGENET_CHAIN_URL` env variables are
+not properly set. If you do not have values for these, you can use empy strings.
+
 ### Key Commands and Tasks
 Basic Command List:
 - `npm install`
