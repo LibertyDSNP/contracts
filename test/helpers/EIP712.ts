@@ -145,28 +145,24 @@ async function sign(
 ): Promise<Record<string, string>> {
   let signature;
 
-  try {
-    if (signer._signingKey) {
-      const digest = digestToSign(domain, primaryType, message, types);
-      signature = signer._signingKey().signDigest(digest);
-      signature.v = "0x" + signature.v.toString(16);
-    } else {
-      const address = await signer.getAddress();
-      const msgParams = JSON.stringify({ domain, primaryType, message, types });
+  if (signer._signingKey) {
+    const digest = digestToSign(domain, primaryType, message, types);
+    signature = signer._signingKey().signDigest(digest);
+    signature.v = "0x" + signature.v.toString(16);
+  } else {
+    const address = await signer.getAddress();
+    const msgParams = JSON.stringify({ domain, primaryType, message, types });
 
-      signature = await signer.provider.jsonRpcFetchFunc("eth_signTypedData_v4", [
-        address,
-        msgParams,
-      ]);
+    signature = await signer.provider.jsonRpcFetchFunc("eth_signTypedData_v4", [
+      address,
+      msgParams,
+    ]);
 
-      const r = "0x" + signature.substring(2).substring(0, 64);
-      const s = "0x" + signature.substring(2).substring(64, 128);
-      const v = "0x" + signature.substring(2).substring(128, 130);
+    const r = "0x" + signature.substring(2).substring(0, 64);
+    const s = "0x" + signature.substring(2).substring(64, 128);
+    const v = "0x" + signature.substring(2).substring(128, 130);
 
-      signature = { r, s, v };
-    }
-  } catch (e) {
-    throw new Error(e);
+    signature = { r, s, v };
   }
 
   return signature;

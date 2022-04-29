@@ -2,6 +2,8 @@
 
 The official DSNP interface and implementations.
 
+**DSNP EVM Spec Versions: v1.0.x**
+
 ## Contract Deployments
 
 ### Rinkeby
@@ -28,8 +30,6 @@ The official DSNP interface and implementations.
 | Beacon Factory | v1.0.1 | `0x024a03CFE1e8EE563382C08C1aB359830c39Cf20` |
 
 ## Overview
-
-**Target DSNP Spec Version**: v1.0.0
 
 ### Installation
 To install this package in your repo:
