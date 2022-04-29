@@ -1,7 +1,7 @@
 Problem
 =======
 problem statement, including
-[link to Pivotal Tracker #12345678](https://www.pivotaltracker.com/story/show/12345678)
+[link to GitHub Issue #123](https://github.com/LibertyDSNP/contracts/issues/123)
 
 Solution
 ========
