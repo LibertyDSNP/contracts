@@ -30,7 +30,7 @@ contract Identity is IDelegation, ERC165 {
         "DelegateAdd(uint32 nonce,address delegateAddr,uint8 role)";
     bytes32 private constant DELEGATE_ADD_TYPEHASH = keccak256(abi.encodePacked(DELEGATE_ADD_TYPE));
     string private constant DELEGATE_REMOVE_TYPE =
-        "DelegateRemove(uint32 nonce,address delegateAddr,uint64 endBlock)";
+        "DelegateRemove(uint32 nonce,address delegateAddr)";
     bytes32 private constant DELEGATE_REMOVE_TYPEHASH =
         keccak256(abi.encodePacked(DELEGATE_REMOVE_TYPE));
 
@@ -218,25 +218,22 @@ contract Identity is IDelegation, ERC165 {
     /**
      * @dev Remove Delegate
      * @param addr Address to remove all permissions from
-     * @param endBlock Block number to consider the permissions terminated (MUST be > 0x0).
      *
      * MUST be called by the delegate, owner, or other delegate with permissions
-     * MUST store endBlock for response in isAuthorizedTo (exclusive)
+     * MUST store the block.number as the endBlock for response in isAuthorizedToAnnounce (exclusive)
      * MUST emit DSNPRemoveDelegate
      */
-    function delegateRemove(address addr, uint64 endBlock) external override {
+    function delegateRemove(address addr) external override {
         // Checks
         require(_delegationData().delegations[addr].nonce > 0, "Never authorized");
-        require(endBlock > 0x0, "endBlock 0x0 reserved for endless permissions");
 
         // Self removal checks
         if (!_checkAuthorization(msg.sender, Permission.DELEGATE_REMOVE, block.number)) {
-            require(endBlock <= block.number, "Cannot self-remove in the future");
             require(msg.sender == addr, "Sender does not have the DELEGATE_REMOVE permission");
         }
 
         // Effects
-        _setDelegateEnd(addr, endBlock);
+        _setDelegateEnd(addr);
     }
 
     /**
@@ -244,10 +241,10 @@ contract Identity is IDelegation, ERC165 {
      * @param v EIP-155 calculated Signature v value
      * @param r ECDSA Signature r value
      * @param s ECDSA Signature s value
-     * @param change Change data containing new delegate address, endBlock, and nonce
+     * @param change Change data containing new delegate address and nonce
      *
      * MUST be signed by the delegate, owner, or other delegate with permissions
-     * MUST store endBlock for response in isAuthorizedTo (exclusive)
+     * MUST store the block.number as the endBlock for response in isAuthorizedToAnnounce (exclusive)
      * MUST emit DSNPRemoveDelegate
      */
     function delegateRemoveByEIP712Sig(
@@ -261,7 +258,6 @@ contract Identity is IDelegation, ERC165 {
 
         // Self removal checks
         if (!_checkAuthorization(signer, Permission.DELEGATE_REMOVE, block.number)) {
-            require(change.endBlock <= block.number, "Cannot self-remove in the future");
             require(
                 signer == change.delegateAddr,
                 "Signer does not have the DELEGATE_REMOVE permission"
@@ -272,10 +268,9 @@ contract Identity is IDelegation, ERC165 {
             "Nonces do not match"
         );
         require(change.nonce > 0, "Never authorized");
-        require(change.endBlock > 0x0, "endBlock 0x0 reserved for endless permissions");
 
         // Effects
-        _setDelegateEnd(change.delegateAddr, change.endBlock);
+        _setDelegateEnd(change.delegateAddr);
     }
 
     /**
@@ -317,13 +312,12 @@ contract Identity is IDelegation, ERC165 {
     /**
      * @dev Removes a delegate role at a given point
      * @param addr The address to revoke the given role to
-     * @param endBlock The exclusive block to end permissions on (0x1 for always)
      */
-    function _setDelegateEnd(address addr, uint64 endBlock) internal {
+    function _setDelegateEnd(address addr) internal {
         AddressDelegation storage delegation = _delegationData().delegations[addr];
-        delegation.endBlock = endBlock;
+        delegation.endBlock = uint64(block.number);
         delegation.nonce++;
-        emit DSNPRemoveDelegate(addr, endBlock);
+        emit DSNPRemoveDelegate(addr);
     }
 
     /**
@@ -351,7 +345,7 @@ contract Identity is IDelegation, ERC165 {
      * @param v EIP-155 calculated Signature v value
      * @param r ECDSA Signature r value
      * @param s ECDSA Signature s value
-     * @param change DelegateRemove data containing nonce, delegate address, end block
+     * @param change DelegateRemove data containing nonce and delegate address
      * @return signer address (or some arbitrary address if signature is incorrect)
      */
     function delegateRemoveSigner(
@@ -361,7 +355,7 @@ contract Identity is IDelegation, ERC165 {
         DelegateRemove calldata change
     ) internal view returns (address) {
         bytes32 typeHash = keccak256(
-            abi.encode(DELEGATE_REMOVE_TYPEHASH, change.nonce, change.delegateAddr, change.endBlock)
+            abi.encode(DELEGATE_REMOVE_TYPEHASH, change.nonce, change.delegateAddr)
         );
         return signerFromHashStruct(v, r, s, typeHash);
     }

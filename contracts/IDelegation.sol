@@ -14,7 +14,6 @@ interface IDelegation {
     struct DelegateRemove {
         uint32 nonce;
         address delegateAddr;
-        uint64 endBlock;
     }
 
     /**
@@ -77,9 +76,8 @@ interface IDelegation {
     /**
      * @dev Log for removal of a delegate
      * @param delegate Address revoked
-     * @param endBlock Block number considered to be the end of the delegate permissions
      */
-    event DSNPRemoveDelegate(address indexed delegate, uint64 endBlock);
+    event DSNPRemoveDelegate(address indexed delegate);
 
     /**
      * @dev Add or change permissions for delegate
@@ -113,23 +111,22 @@ interface IDelegation {
     /**
      * @dev Remove Delegate
      * @param addr Address to remove all permissions from
-     * @param endBlock Block number to consider the permissions terminated (MUST be > 0x0).
      *
      * MUST be called by the delegate, owner, or other delegate with permissions
-     * MUST store endBlock for response in isAuthorizedTo (exclusive)
+     * MUST store the block.number as the endBlock for response in isAuthorizedToAnnounce (exclusive)
      * MUST emit DSNPRemoveDelegate
      */
-    function delegateRemove(address addr, uint64 endBlock) external;
+    function delegateRemove(address addr) external;
 
     /**
      * @dev Remove Delegate By EIP-712 Signature
      * @param v EIP-155 calculated Signature v value
      * @param r ECDSA Signature r value
      * @param s ECDSA Signature s value
-     * @param change Change data containing new delegate address, endBlock, and nonce
+     * @param change Change data containing new delegate address and nonce
      *
      * MUST be signed by the delegate, owner, or other delegate with permissions
-     * MUST store endBlock for response in isAuthorizedTo (exclusive)
+     * MUST store the block.number as the endBlock for response in isAuthorizedToAnnounce (exclusive)
      * MUST emit DSNPRemoveDelegate
      */
     function delegateRemoveByEIP712Sig(
