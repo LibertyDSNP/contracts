@@ -34,7 +34,7 @@ contract TestDelegate is ERC165, IDelegation {
         require(false, "Not implemented");
     }
 
-    function delegateRemove(address, uint64) external pure override {
+    function delegateRemove(address) external pure override {
         require(false, "Not implemented");
     }
 

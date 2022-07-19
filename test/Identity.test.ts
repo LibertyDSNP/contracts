@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 import chai from "chai";
 import { describe } from "mocha";
 import { DelegationPermission, DelegationRole } from "./helpers/DSNPEnums";
@@ -97,11 +97,17 @@ describe("Identity", () => {
         { p: DelegationPermission.ANNOUNCE, x: false, b: 0x100 },
         { p: DelegationPermission.ANNOUNCE, x: false, b: 0x101 },
       ];
+
+      // MINE up to block 0x100
+      const blockNumber = await ethers.provider.getBlockNumber();
+      const numberToMine = 0x100 - blockNumber;
+      await hre.network.provider.send("hardhat_mine", ["0x" + numberToMine.toString(16)]);
+      identity.delegateRemove(announcerOnly.address);
+
       tests.forEach((tc) => {
         it(`Permission ${DelegationPermission[tc.p]} should return ${tc.x} block ${
           tc.b
         }`, async () => {
-          identity.delegateRemove(announcerOnly.address, 0x100);
           const result = await identity.isAuthorizedTo(announcerOnly.address, tc.p, tc.b);
           expect(result).to.equal(tc.x);
         });
@@ -194,25 +200,29 @@ describe("Identity", () => {
       expect(await identity.isAuthorizedTo(addr, DelegationPermission.DELEGATE_REMOVE, 0x0)).to.be
         .false;
 
+      const priorBlockNumber = await ethers.provider.getBlockNumber();
       // Remove permission
-      await expect(identity.connect(announcerOnly).delegateRemove(addr, 0x5)).to.not.be.reverted;
+      await expect(identity.connect(announcerOnly).delegateRemove(addr)).to.not.be.reverted;
 
       // Test before endBlock
-      expect(await identity.isAuthorizedTo(addr, DelegationPermission.ANNOUNCE, 0x6)).to.be.false;
+      expect(await identity.isAuthorizedTo(addr, DelegationPermission.ANNOUNCE, priorBlockNumber))
+        .to.be.true;
       // Test after endBlock
-      expect(await identity.isAuthorizedTo(addr, DelegationPermission.ANNOUNCE, 0x4)).to.be.true;
+      expect(
+        await identity.isAuthorizedTo(addr, DelegationPermission.ANNOUNCE, priorBlockNumber + 2)
+      ).to.be.false;
     });
 
     it("emits DSNPRemoveDelegate on success", async () => {
-      await expect(identity.connect(announcerOnly).delegateRemove(announcerOnly.address, 0x5))
+      await expect(identity.connect(announcerOnly).delegateRemove(announcerOnly.address))
         .to.emit(identity, "DSNPRemoveDelegate")
-        .withArgs(announcerOnly.address, 0x5);
+        .withArgs(announcerOnly.address);
     });
 
     it("success with DELEGATE_REMOVE", async () => {
-      await expect(identity.connect(authOwner).delegateRemove(announcerOnly.address, 0x1))
+      await expect(identity.connect(authOwner).delegateRemove(announcerOnly.address))
         .to.emit(identity, "DSNPRemoveDelegate")
-        .withArgs(announcerOnly.address, 0x1).and.to.not.be.reverted;
+        .withArgs(announcerOnly.address).and.to.not.be.reverted;
 
       expect(
         await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)
@@ -220,38 +230,26 @@ describe("Identity", () => {
     });
 
     it("rejects without DELEGATE_REMOVE", async () => {
-      await expect(identity.connect(announcerOnly).delegateRemove(authOwner.address, 0x1)).to.be
+      await expect(identity.connect(announcerOnly).delegateRemove(authOwner.address)).to.be
         .reverted;
-    });
-
-    it("rejects block 0x0", async () => {
-      await expect(
-        identity.connect(authOwner).delegateRemove(announcerOnly.address, 0x0)
-      ).to.be.revertedWith("endBlock 0x0 reserved for endless permissions");
     });
 
     it("rejects removing a non-authorized address when approved", async () => {
       await expect(
-        identity.connect(authOwner).delegateRemove(neverAuthorized.address, 0x1)
+        identity.connect(authOwner).delegateRemove(neverAuthorized.address)
       ).to.be.revertedWith("Never authorized");
     });
 
     it("rejects removing a non-authorized address", async () => {
       await expect(
-        identity.connect(authOwner).delegateRemove(neverAuthorized.address, 0x1)
+        identity.connect(authOwner).delegateRemove(neverAuthorized.address)
       ).to.be.revertedWith("Never authorized");
     });
 
     it("rejects self-removing a non-authorized address", async () => {
       await expect(
-        identity.connect(neverAuthorized).delegateRemove(neverAuthorized.address, 0x1)
+        identity.connect(neverAuthorized).delegateRemove(neverAuthorized.address)
       ).to.be.revertedWith("Never authorized");
-    });
-
-    it("rejects self-removing into the future", async () => {
-      await expect(
-        identity.connect(announcerOnly).delegateRemove(announcerOnly.address, 0x100000)
-      ).to.be.revertedWith("Cannot self-remove in the future");
     });
   });
 
@@ -454,7 +452,6 @@ describe("Identity", () => {
       DelegateRemove: [
         { name: "nonce", type: "uint32" },
         { name: "delegateAddr", type: "address" },
-        { name: "endBlock", type: "uint64" },
       ],
     };
 
@@ -462,7 +459,6 @@ describe("Identity", () => {
       const message = {
         nonce: 1,
         delegateAddr: announcerOnly.address,
-        endBlock: 0x1,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -483,7 +479,6 @@ describe("Identity", () => {
       const message = {
         nonce: 1,
         delegateAddr: announcerOnly.address,
-        endBlock: 0x1,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -494,14 +489,13 @@ describe("Identity", () => {
 
       await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message))
         .to.emit(identity, "DSNPRemoveDelegate")
-        .withArgs(announcerOnly.address, 0x1);
+        .withArgs(announcerOnly.address);
     });
 
     it("success for self removal ", async () => {
       const message = {
         nonce: 1,
         delegateAddr: announcerOnly.address,
-        endBlock: 0x1,
       };
       const { v, r, s } = await signEIP712(
         announcerOnly,
@@ -522,7 +516,6 @@ describe("Identity", () => {
       const message = {
         nonce: 1,
         delegateAddr: announcerOnly.address,
-        endBlock: 0x1,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -544,7 +537,6 @@ describe("Identity", () => {
       const message = {
         nonce: 2,
         delegateAddr: announcerOnly.address,
-        endBlock: 0x1,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -562,7 +554,6 @@ describe("Identity", () => {
       const message = {
         nonce: 0,
         delegateAddr: announcerOnly.address,
-        endBlock: 0x1,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -580,7 +571,6 @@ describe("Identity", () => {
       const message = {
         nonce: 1,
         delegateAddr: announcerOnly.address,
-        endBlock: 0x1,
       };
       const { v, r, s } = await signEIP712(
         notAuthorized,
@@ -598,7 +588,6 @@ describe("Identity", () => {
       const message = {
         nonce: 0,
         delegateAddr: notAuthorized.address,
-        endBlock: 0x1,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -612,44 +601,8 @@ describe("Identity", () => {
       ).to.be.revertedWith("Never authorized");
     });
 
-    it("rejects self removing for future block", async () => {
-      const message = {
-        nonce: 1,
-        delegateAddr: announcerOnly.address,
-        endBlock: 0x10000,
-      };
-      const { v, r, s } = await signEIP712(
-        announcerOnly,
-        identityDomain,
-        delegateRemoveChangeTypes,
-        message
-      );
-
-      await expect(
-        identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
-      ).to.be.revertedWith("Cannot self-remove in the future");
-    });
-
-    it("rejects for endBlock 0x0", async () => {
-      const message = {
-        nonce: 1,
-        delegateAddr: announcerOnly.address,
-        endBlock: 0x0,
-      };
-      const { v, r, s } = await signEIP712(
-        authOwner,
-        identityDomain,
-        delegateRemoveChangeTypes,
-        message
-      );
-
-      await expect(
-        identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
-      ).to.be.revertedWith("endBlock 0x0 reserved for endless permissions");
-    });
-
     it("rejects when signed by a non-authorized address", async () => {
-      const message = { nonce: 1, delegateAddr: announcerOnly.address, endBlock: 0x1 };
+      const message = { nonce: 1, delegateAddr: announcerOnly.address };
       const { v, r, s } = await signEIP712(
         notAuthorized,
         identityDomain,
@@ -663,7 +616,7 @@ describe("Identity", () => {
     });
 
     it("rejects self-removing a non-authorized address", async () => {
-      const message = { nonce: 0, delegateAddr: notAuthorized.address, endBlock: 0x1 };
+      const message = { nonce: 0, delegateAddr: notAuthorized.address };
       const { v, r, s } = await signEIP712(
         notAuthorized,
         identityDomain,
