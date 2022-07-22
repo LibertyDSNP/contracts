@@ -1,6 +1,6 @@
 # DSNP Contracts
 
-The official DSNP interface and implementations.
+Official DSNP interface and implementations for EVM
 
 **DSNP EVM Spec Versions: v1.0.x**
 
