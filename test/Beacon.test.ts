@@ -1,50 +1,63 @@
 import { ethers } from "hardhat";
 import chai from "chai";
 const { expect } = chai;
-import { describe } from "mocha";
+import { Beacon, TestDelegate, Identity } from "../typechain-types";
+import hre from "hardhat";
+
 
 describe("IdentityBeaconProxy", () => {
-  let beaconInstance, testDelegate, identityInstance;
-  let deployer, signer;
+  const deployIdentityAndBeacon = async () => {
+    const [deployer, signer] = await ethers.getSigners();
 
-  beforeEach(async () => {
-    [deployer, signer] = await ethers.getSigners();
+    const Identity = await hre.ethers.getContractFactory("Identity");
+    const identityInstance = await Identity.deploy("0x0000000000000000000000000000000000000000");
 
-    const Identity = await ethers.getContractFactory("Identity");
-    identityInstance = await Identity.deploy("0x0000000000000000000000000000000000000000");
-    await identityInstance.deployed();
+    const TestDelegate = await hre.ethers.getContractFactory("TestDelegate");
+    const testDelegate = await TestDelegate.deploy(signer.address);
+    let testDelegateAddress = await testDelegate.getAddress();
 
-    const TestDelegate = await ethers.getContractFactory("TestDelegate");
-    testDelegate = await TestDelegate.deploy(signer.address);
-    await testDelegate.deployed();
+    const Beacon = await hre.ethers.getContractFactory("Beacon");
 
-    const Beacon = await ethers.getContractFactory("Beacon");
-    beaconInstance = await Beacon.deploy(testDelegate.address);
-    await beaconInstance.deployed();
-  });
+    const beaconInstance = await Beacon.deploy(testDelegateAddress, deployer.address);
+    return { identityInstance, testDelegateAddress, beaconInstance, deployer, signer };
+  };
 
   describe("implementation", () => {
     it("is set correctly", async () => {
-      expect(await beaconInstance.implementation()).to.equal(testDelegate.address);
+      const { testDelegateAddress, beaconInstance } =
+        await deployIdentityAndBeacon();
+      expect(await beaconInstance.implementation()).to.equal(testDelegateAddress);
     });
   });
 
   describe("can be upgraded", () => {
     it("by the owner", async () => {
-      await expect(beaconInstance.connect(deployer).upgradeTo(identityInstance.address)).to.not.be
+      const { identityInstance, beaconInstance, deployer } =
+        await deployIdentityAndBeacon();
+      let identityInstanceAddress = await identityInstance.getAddress();
+      await expect(beaconInstance.connect(deployer).upgradeTo(identityInstanceAddress)).to.not.be
         .reverted;
-      expect(await beaconInstance.implementation()).to.equal(identityInstance.address);
+      expect(await beaconInstance.implementation()).to.equal(identityInstanceAddress);
     });
     it("but NOT by anyone else", async () => {
-      await expect(beaconInstance.connect(signer).upgradeTo(identityInstance.address)).to.be
+      const { identityInstance, testDelegateAddress, beaconInstance, signer } =
+        await deployIdentityAndBeacon();
+
+      let identityInstanceAddress = await identityInstance.getAddress();
+
+      await expect(beaconInstance.connect(signer).upgradeTo(identityInstanceAddress)).to.be
         .reverted;
 
-      expect(await beaconInstance.implementation()).to.equal(testDelegate.address);
+      expect(await beaconInstance.implementation()).to.equal(testDelegateAddress);
     });
     it("emits upgraded event", async () => {
-      await expect(beaconInstance.connect(deployer).upgradeTo(identityInstance.address))
+      const { identityInstance, beaconInstance, deployer } =
+        await deployIdentityAndBeacon();
+
+      let identityInstanceAddress = await identityInstance.getAddress();
+      await expect(beaconInstance.connect(deployer).upgradeTo(identityInstanceAddress))
         .to.emit(beaconInstance, "Upgraded")
-        .withArgs(identityInstance.address);
+        .withArgs(identityInstanceAddress);
     });
   });
 });

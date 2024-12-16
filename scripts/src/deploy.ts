@@ -58,7 +58,7 @@ export async function main() {
 
   // Deploy the Beacon and Factory Contract
   const Beacon = await ethers.getContractFactory("Beacon");
-  const beacon = await Beacon.deploy(identityLogic.address);
+  const beacon = await Beacon.deploy(identityLogic.address, deployer.address);
   await beacon.deployed();
   console.log("beacon deployed to:", beacon.address);
 

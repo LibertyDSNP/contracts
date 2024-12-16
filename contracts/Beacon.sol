@@ -5,5 +5,5 @@ import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 contract Beacon is UpgradeableBeacon {
     // solhint-disable-next-line no-empty-blocks
-    constructor(address _logic) UpgradeableBeacon(_logic) {}
+    constructor(address _logic, address firstOwner) UpgradeableBeacon(_logic, firstOwner) {}
 }
