@@ -1,16 +1,25 @@
 import { ethers } from "hardhat";
 import chai from "chai";
-const { expect } = chai;
 import { generateHexString } from "@dsnp/test-generators";
 import { signEIP712 } from "./helpers/EIP712";
+
+import { ContractTransactionResponse, Signer } from "ethers";
+import { Registry } from "../typechain-types";
+
+const { expect } = chai;
 
 describe("Registry", () => {
   const handle = "flarp";
   const newHandle = "flarpenator";
-  let signer1, signer2, signer3;
-  let delegate1, delegate2, delegate3, newDelegate1, nonDelegate;
 
-  let registry, registryDomain;
+  let signer1: Signer;
+  let signer2: Signer;
+  let signer3: Signer;
+  let [delegate1Address, delegate2Address, delegate3Address, newDelegate1Address, nonDelegateAddress,
+    registryAddress] = "";
+
+  let registry: Registry & { deploymentTransaction(): ContractTransactionResponse; };
+  let registryDomain: Record<string, any>;
 
   const firstId = 1000;
 
@@ -36,122 +45,126 @@ describe("Registry", () => {
     signer2 = signers[1];
     signer3 = signers[2];
 
+    const signer1Address = await signer1.getAddress();
+    const signer2Address = await signer2.getAddress();
+    const signer3Address = await signer3.getAddress();
+
     const Registry = await ethers.getContractFactory("Registry");
     registry = await Registry.deploy();
-    await registry.deployed();
+    registryAddress = await registry.getAddress();
 
     const TestDelegate = await ethers.getContractFactory("TestDelegate");
-    delegate1 = await TestDelegate.deploy(signer1.address);
-    await delegate1.deployed();
+    const delegate1 = await TestDelegate.deploy(signer1Address);
+    delegate1Address = await delegate1.getAddress();
 
-    newDelegate1 = await TestDelegate.deploy(signer1.address);
-    await newDelegate1.deployed();
+    const newDelegate1 = await TestDelegate.deploy(signer1Address);
+    newDelegate1Address = await newDelegate1.getAddress();
 
-    delegate2 = await TestDelegate.deploy(signer2.address);
-    await delegate2.deployed();
+    const delegate2 = await TestDelegate.deploy(signer2Address);
+    delegate2Address = await delegate2.getAddress();
 
-    delegate3 = await TestDelegate.deploy(signer3.address);
-    await delegate3.deployed();
+    const delegate3 = await TestDelegate.deploy(signer3Address);
+    delegate3Address = await delegate3.getAddress();
 
     const TestERC165 = await ethers.getContractFactory("TestERC165");
-    nonDelegate = await TestERC165.deploy();
-    await nonDelegate.deployed();
+    const nonDelegate = await TestERC165.deploy();
+    nonDelegateAddress = await nonDelegate.getAddress();
 
     registryDomain = {
       name: "Registry",
       version: "1",
       chainId: (await ethers.provider.getNetwork()).chainId,
-      verifyingContract: registry.address,
+      verifyingContract: registryAddress,
       salt: "0x01597239a39b73c524db27009bfe992afd78e195ca64846a6fa0ce65ce37b2df",
     };
   });
 
   describe("register", () => {
     it("emits a DSNPRegistryUpdate event", async () => {
-      await expect(registry.connect(signer1).register(delegate1.address, handle))
+      await expect(registry.connect(signer1).register(delegate1Address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId, delegate1.address, handle);
+        .withArgs(firstId, delegate1Address, handle);
     });
 
     it("reverts when addr is not a delegation contract", async () => {
       await expect(
-        registry.connect(signer2).register(nonDelegate.address, handle)
+        registry.connect(signer2).register(nonDelegateAddress, handle)
       ).to.be.revertedWith("contract does not support IDelegation interface");
     });
 
     it("reverts when contract does not exist", async () => {
-      const bogusContract = ethers.utils.getAddress(generateHexString(40));
+      const bogusContract = ethers.getAddress(generateHexString(40));
       await expect(registry.connect(signer2).register(bogusContract, handle)).to.be.revertedWith(
         "function call to a non-contract account"
       );
     });
 
     it("reverts when handle already exists", async () => {
-      await registry.connect(signer1).register(delegate1.address, handle);
-      await expect(registry.register(delegate1.address, handle)).to.be.revertedWith(
+      await registry.connect(signer1).register(delegate1Address, handle);
+      await expect(registry.register(delegate1Address, handle)).to.be.revertedWith(
         "Handle already exists"
       );
     });
 
     it("increments id for each registration", async () => {
-      await expect(registry.connect(signer1).register(delegate1.address, "foo"))
+      await expect(registry.connect(signer1).register(delegate1Address, "foo"))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId, delegate1.address, "foo");
-      await expect(registry.connect(signer2).register(delegate2.address, "bar"))
+        .withArgs(firstId, delegate1Address, "foo");
+      await expect(registry.connect(signer2).register(delegate2Address, "bar"))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId + 1, delegate2.address, "bar");
-      await expect(registry.connect(signer3).register(delegate3.address, "baz"))
+        .withArgs(firstId + 1, delegate2Address, "bar");
+      await expect(registry.connect(signer3).register(delegate3Address, "baz"))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId + 2, delegate3.address, "baz");
+        .withArgs(firstId + 2, delegate3Address, "baz");
     });
 
     it("stores correct id and address", async () => {
-      await registry.connect(signer1).register(delegate1.address, handle);
+      await registry.connect(signer1).register(delegate1Address, handle);
       const result = await registry.resolveRegistration(handle);
       expect(result[0]).to.equal(1000);
-      expect(result[1]).to.equal(delegate1.address);
+      expect(result[1]).to.equal(delegate1Address);
     });
   });
 
   describe("change address", async () => {
     // create registration to change
     beforeEach(async () => {
-      await registry.connect(signer1).register(delegate1.address, handle);
+      await registry.connect(signer1).register(delegate1Address, handle);
     });
 
     it("updates stored address", async () => {
-      await registry.connect(signer1).changeAddress(newDelegate1.address, handle);
+      await registry.connect(signer1).changeAddress(newDelegate1Address, handle);
 
       const result = await registry.resolveRegistration(handle);
-      expect(result[1]).to.equal(newDelegate1.address);
+      expect(result[1]).to.equal(newDelegate1Address);
     });
 
     it("emits a DSNPRegistryUpdate event", async () => {
-      await expect(registry.connect(signer1).changeAddress(newDelegate1.address, handle))
+      await expect(registry.connect(signer1).changeAddress(newDelegate1Address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId, newDelegate1.address, handle);
+        .withArgs(firstId, newDelegate1Address, handle);
     });
 
     it("reverts when handle does not exist", async () => {
       await expect(
-        registry.connect(signer1).changeAddress(newDelegate1.address, newHandle)
+        registry.connect(signer1).changeAddress(newDelegate1Address, newHandle)
       ).to.be.revertedWith("Handle does not exist");
     });
 
     it("reverts when sender is not authorized in old contract", async () => {
       await expect(
-        registry.connect(signer2).changeAddress(delegate2.address, handle)
+        registry.connect(signer2).changeAddress(delegate2Address, handle)
       ).to.be.revertedWith("Access denied");
     });
 
     it("reverts when new contract is not a delegation contract", async () => {
       await expect(
-        registry.connect(signer1).changeAddress(nonDelegate.address, handle)
+        registry.connect(signer1).changeAddress(nonDelegateAddress, handle)
       ).to.be.revertedWith("contract does not support IDelegation interface");
     });
 
     it("reverts when new contract does not exist", async () => {
-      const bogusContract = ethers.utils.getAddress(generateHexString(40));
+      const bogusContract = ethers.getAddress(generateHexString(40));
       await expect(
         registry.connect(signer1).changeAddress(bogusContract, handle)
       ).to.be.revertedWith("function call to a non-contract account");
@@ -161,19 +174,19 @@ describe("Registry", () => {
   describe("changeAddressByEIP712Sig", () => {
     // create registration to change
     beforeEach(async () => {
-      await registry.connect(signer1).register(delegate1.address, handle);
+      await registry.connect(signer1).register(delegate1Address, handle);
     });
 
     it("updates stored address", async () => {
-      const message = { nonce: 0, addr: newDelegate1.address, handle: handle };
+      const message = { nonce: 0, addr: newDelegate1Address, handle: handle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, addressChangeTypes, message);
       await registry.connect(signer2).changeAddressByEIP712Sig(v, r, s, message);
       const result = await registry.resolveRegistration(handle);
-      expect(result[1]).to.equal(newDelegate1.address);
+      expect(result[1]).to.equal(newDelegate1Address);
     });
 
     it("updates nonce", async () => {
-      const message = { nonce: 0, addr: newDelegate1.address, handle: handle };
+      const message = { nonce: 0, addr: newDelegate1Address, handle: handle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, addressChangeTypes, message);
       await registry.connect(signer2).changeAddressByEIP712Sig(v, r, s, message);
 
@@ -181,16 +194,16 @@ describe("Registry", () => {
     });
 
     it("emits a DSNPRegistryUpdate event", async () => {
-      const message = { nonce: 0, addr: newDelegate1.address, handle: handle };
+      const message = { nonce: 0, addr: newDelegate1Address, handle: handle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, addressChangeTypes, message);
 
       await expect(registry.connect(signer2).changeAddressByEIP712Sig(v, r, s, message))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId, newDelegate1.address, handle);
+        .withArgs(firstId, newDelegate1Address, handle);
     });
 
     it("reverts when nonce is too high", async () => {
-      const message = { nonce: 1, addr: newDelegate1.address, handle: handle };
+      const message = { nonce: 1, addr: newDelegate1Address, handle: handle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, addressChangeTypes, message);
 
       await expect(
@@ -199,11 +212,11 @@ describe("Registry", () => {
     });
 
     it("reverts when nonce is too low", async () => {
-      const message = { nonce: 0, addr: newDelegate1.address, handle: handle };
+      const message = { nonce: 0, addr: newDelegate1Address, handle: handle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, addressChangeTypes, message);
       await registry.connect(signer2).changeAddressByEIP712Sig(v, r, s, message);
 
-      const message2 = { nonce: 0, addr: delegate1.address, handle: handle };
+      const message2 = { nonce: 0, addr: delegate1Address, handle: handle };
       const sig2 = await signEIP712(signer1, registryDomain, addressChangeTypes, message2);
 
       await expect(
@@ -212,7 +225,7 @@ describe("Registry", () => {
     });
 
     it("reverts when handle does not exist", async () => {
-      const message = { nonce: 0, addr: newDelegate1.address, handle: newHandle };
+      const message = { nonce: 0, addr: newDelegate1Address, handle: newHandle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, addressChangeTypes, message);
 
       await expect(
@@ -221,7 +234,7 @@ describe("Registry", () => {
     });
 
     it("reverts when sender is not authorized in old contract", async () => {
-      const message = { nonce: 0, addr: newDelegate1.address, handle: handle };
+      const message = { nonce: 0, addr: newDelegate1Address, handle: handle };
       const { v, r, s } = await signEIP712(signer2, registryDomain, addressChangeTypes, message);
 
       await expect(
@@ -230,7 +243,7 @@ describe("Registry", () => {
     });
 
     it("reverts when new contract is not a delegation contract", async () => {
-      const message = { nonce: 0, addr: nonDelegate.address, handle: handle };
+      const message = { nonce: 0, addr: nonDelegateAddress, handle: handle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, addressChangeTypes, message);
 
       await expect(
@@ -239,7 +252,7 @@ describe("Registry", () => {
     });
 
     it("reverts when new contract does not exist", async () => {
-      const bogusContract = ethers.utils.getAddress(generateHexString(40));
+      const bogusContract = ethers.getAddress(generateHexString(40));
       const message = { nonce: 0, addr: bogusContract, handle: handle };
       const { v, r, s } = await signEIP712(signer1, registryDomain, addressChangeTypes, message);
 
@@ -252,21 +265,21 @@ describe("Registry", () => {
   describe("changeHandle", async () => {
     // create registration to change
     beforeEach(async () => {
-      await registry.connect(signer1).register(delegate1.address, handle);
+      await registry.connect(signer1).register(delegate1Address, handle);
     });
 
     it("stores address and id under new handle", async () => {
       await registry.connect(signer1).changeHandle(handle, newHandle);
 
       const [id, addr] = await registry.resolveRegistration(newHandle);
-      expect(addr).to.equal(delegate1.address);
+      expect(addr).to.equal(delegate1Address);
       expect(id).to.equal(firstId);
     });
 
     it("emits a DSNPRegistryUpdate event", async () => {
       await expect(registry.connect(signer1).changeHandle(handle, newHandle))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId, delegate1.address, newHandle);
+        .withArgs(firstId, delegate1Address, newHandle);
     });
 
     it("clears old handle and frees it for registration", async () => {
@@ -275,9 +288,9 @@ describe("Registry", () => {
       expect(addr).to.equal("0x0000000000000000000000000000000000000000");
       expect(id).to.equal("0x00");
 
-      await expect(registry.connect(signer2).register(delegate2.address, handle))
+      await expect(registry.connect(signer2).register(delegate2Address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId + 1, delegate2.address, handle);
+        .withArgs(firstId + 1, delegate2Address, handle);
     });
 
     it("reverts when sender is not authorized", async () => {
@@ -293,7 +306,7 @@ describe("Registry", () => {
     });
 
     it("reverts when new handle already exists", async () => {
-      await registry.connect(signer2).register(delegate2.address, newHandle);
+      await registry.connect(signer2).register(delegate2Address, newHandle);
 
       await expect(registry.connect(signer1).changeHandle(handle, newHandle)).to.be.revertedWith(
         "New handle already exists"
@@ -309,7 +322,7 @@ describe("Registry", () => {
 
   describe("changeHandleByEIP712Sig", () => {
     beforeEach(async () => {
-      await registry.connect(signer1).register(delegate1.address, handle);
+      await registry.connect(signer1).register(delegate1Address, handle);
     });
 
     it("stores address and id under new handle", async () => {
@@ -317,7 +330,7 @@ describe("Registry", () => {
       const { v, r, s } = await signEIP712(signer1, registryDomain, handleChangeTypes, message);
       await registry.connect(signer2).changeHandleByEIP712Sig(v, r, s, message);
       const [id, addr] = await registry.resolveRegistration(newHandle);
-      expect(addr).to.equal(delegate1.address);
+      expect(addr).to.equal(delegate1Address);
       expect(id).to.equal(firstId);
     });
 
@@ -327,7 +340,7 @@ describe("Registry", () => {
 
       await expect(registry.connect(signer2).changeHandleByEIP712Sig(v, r, s, message))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId, delegate1.address, newHandle);
+        .withArgs(firstId, delegate1Address, newHandle);
     });
 
     it("clears old handle and frees it for registration", async () => {
@@ -339,9 +352,9 @@ describe("Registry", () => {
       expect(addr).to.equal("0x0000000000000000000000000000000000000000");
       expect(id).to.equal("0x00");
 
-      await expect(registry.connect(signer2).register(delegate2.address, handle))
+      await expect(registry.connect(signer2).register(delegate2Address, handle))
         .to.emit(registry, "DSNPRegistryUpdate")
-        .withArgs(firstId + 1, delegate2.address, handle);
+        .withArgs(firstId + 1, delegate2Address, handle);
     });
 
     it("updates nonce for old handle", async () => {
@@ -350,7 +363,7 @@ describe("Registry", () => {
       await registry.connect(signer2).changeHandleByEIP712Sig(v, r, s, message);
 
       // we must register handle again to retrieve its nonce
-      await registry.connect(signer2).register(delegate2.address, handle);
+      await registry.connect(signer2).register(delegate2Address, handle);
 
       expect(await registry.resolveHandleToNonce(handle)).to.equal(1);
     });
@@ -371,7 +384,7 @@ describe("Registry", () => {
       await registry.connect(signer2).changeHandleByEIP712Sig(v, r, s, message);
 
       // we must register handle again before we update it
-      await registry.connect(signer2).register(delegate2.address, handle);
+      await registry.connect(signer2).register(delegate2Address, handle);
 
       // create an EIP 712 handle change that should fail with nonce=0
       const message2 = { nonce: 0, oldHandle: handle, newHandle: "yetanotherhandle" };
@@ -401,7 +414,7 @@ describe("Registry", () => {
     });
 
     it("reverts when new handle already exists", async () => {
-      await registry.connect(signer2).register(delegate2.address, newHandle);
+      await registry.connect(signer2).register(delegate2Address, newHandle);
 
       const message = { nonce: 0, oldHandle: handle, newHandle: newHandle };
       const { v, r, s } = await signEIP712(signer2, registryDomain, handleChangeTypes, message);

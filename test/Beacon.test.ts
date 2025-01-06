@@ -1,7 +1,6 @@
 import { ethers } from "hardhat";
 import chai from "chai";
 const { expect } = chai;
-import { Beacon, TestDelegate, Identity } from "../typechain-types";
 import hre from "hardhat";
 
 

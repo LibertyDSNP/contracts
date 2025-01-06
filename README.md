@@ -208,7 +208,6 @@ The default port is `:8545`
 
 ## Development
 * This repo uses [Hardhat](https://hardhat.org/getting-started/) + [ethers](https://docs.ethers.io/v5/) for interfacing with Ethereum,
-* [Waffle](https://ethereum-waffle.readthedocs.io/en/latest/index.html) for testing
 
 ## Troubleshooting
 * **`ELIFECYCLE` error when deploying contracts** - if you see the following:

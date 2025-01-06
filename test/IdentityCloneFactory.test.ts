@@ -14,11 +14,9 @@ describe("IdentityCloneFactory", () => {
 
     const IdentityCloneFactory = await ethers.getContractFactory("IdentityCloneFactory");
     factory = await IdentityCloneFactory.deploy();
-    await factory.deployed();
 
     Identity = await ethers.getContractFactory("Identity");
     identity = await Identity.deploy("0x0000000000000000000000000000000000000000");
-    await identity.deployed();
   });
 
   describe("createCloneProxy", () => {

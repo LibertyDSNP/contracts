@@ -1,5 +1,4 @@
 import chai from "chai";
-import { describe } from "mocha";
 import { main } from "../../scripts/src/deploy";
 const { expect } = chai;
 

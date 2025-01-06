@@ -1,16 +1,20 @@
-import { ethers } from "hardhat";
+import hre from "hardhat";
 import chai from "chai";
+import { keccak256} from "js-sha3";
+
 const { expect } = chai;
 
+const ethers = hre.ethers
+
+
 describe("publisher", () => {
-  const hash = ethers.utils.keccak256("0x");
+  const hash = keccak256("0x");
   let publisher;
 
   describe("publish", () => {
     beforeEach(async () => {
       const Publisher = await ethers.getContractFactory("Publisher");
       publisher = await Publisher.deploy();
-      await publisher.deployed();
     });
 
     it("batch emits a DSNPBatchPublication event", async () => {

@@ -1,15 +1,16 @@
 import hre, { ethers } from "hardhat";
 import chai from "chai";
-import { describe } from "mocha";
 import { DelegationPermission, DelegationRole } from "./helpers/DSNPEnums";
 import { signEIP712 } from "./helpers/EIP712";
-import { Contract, ContractFactory } from "ethers";
+import { Contract, ContractFactory, Signer } from "ethers";
+import { Identity } from "../typechain-types";
 const { expect } = chai;
 
 describe("Identity", () => {
-  let signer, authOwner, announcerOnly, notAuthorized, neverAuthorized;
+  let signer: Signer, authOwner: Signer, announcerOnly: Signer, notAuthorized: Signer, neverAuthorized: Signer;
+  let authOwnerAddress: string, notAuthorizedAddress: string, announcerOnlyAddress: string, identityAddress: string, neverAuthorizedAddress: string;
   let identity;
-  let Identity: ContractFactory;
+  let IdentityFactory: ContractFactory;
   let identityDomain;
 
   const getIdentityDomain = async (contract: Contract) => ({
@@ -22,13 +23,18 @@ describe("Identity", () => {
 
   beforeEach(async () => {
     [signer, authOwner, announcerOnly, notAuthorized, neverAuthorized] = await ethers.getSigners();
+    const signerAddress = await signer.getAddress();
+    authOwnerAddress = await authOwner.getAddress();
+    notAuthorizedAddress = await notAuthorized.getAddress();
+    announcerOnlyAddress = await announcerOnly.getAddress();
+    neverAuthorizedAddress = await neverAuthorized.getAddress();
 
-    Identity = await ethers.getContractFactory("Identity");
-    identity = await Identity.deploy(signer.address);
-    await identity.deployed();
+    IdentityFactory = await ethers.getContractFactory("Identity");
+    identity = await IdentityFactory.deploy(signerAddress);
+    identityAddress = await identity.getAddress();
 
-    await identity.delegate(authOwner.address, 0x1);
-    await identity.delegate(announcerOnly.address, 0x2);
+    await identity.delegate(authOwnerAddress, 0x1);
+    await identity.delegate(announcerOnlyAddress, 0x2);
 
     identityDomain = await getIdentityDomain(identity);
   });
@@ -47,7 +53,8 @@ describe("Identity", () => {
         it(`Permission ${DelegationPermission[tc.p]} should ${
           tc.x ? "" : "not"
         } be allowed`, async () => {
-          const result = await identity.isAuthorizedTo(authOwner.address, tc.p, 0x1);
+          const authOwnerAddress = await authOwner.getAddress();
+          const result = await identity.isAuthorizedTo(authOwnerAddress, tc.p, 0x1);
           expect(result).to.equal(tc.x);
         });
       });
@@ -66,7 +73,8 @@ describe("Identity", () => {
         it(`Permission ${DelegationPermission[tc.p]} should ${
           tc.x ? "" : "not"
         } be allowed`, async () => {
-          const result = await identity.isAuthorizedTo(announcerOnly.address, tc.p, 0x1);
+          const aOnlyAddr = await announcerOnly.getAddress();
+          const result = await identity.isAuthorizedTo(aOnlyAddr, tc.p, 0x1);
           expect(result).to.equal(tc.x);
         });
       });
@@ -83,7 +91,8 @@ describe("Identity", () => {
       ];
       tests.forEach((tc) => {
         it(`Permission ${DelegationPermission[tc.p]} should return ${tc.x}`, async () => {
-          const result = await identity.isAuthorizedTo(notAuthorized.address, tc.p, 0x1);
+          const notAuthAddr = await notAuthorized.getAddress();
+          const result = await identity.isAuthorizedTo(notAuthAddr, tc.p, 0x1);
           expect(result).to.equal(tc.x);
         });
       });
@@ -102,13 +111,13 @@ describe("Identity", () => {
       const blockNumber = await ethers.provider.getBlockNumber();
       const numberToMine = 0x100 - blockNumber;
       await hre.network.provider.send("hardhat_mine", ["0x" + numberToMine.toString(16)]);
-      identity.delegateRemove(announcerOnly.address);
+      identity.delegateRemove(announcerOnlyAddress);
 
       tests.forEach((tc) => {
         it(`Permission ${DelegationPermission[tc.p]} should return ${tc.x} block ${
           tc.b
         }`, async () => {
-          const result = await identity.isAuthorizedTo(announcerOnly.address, tc.p, tc.b);
+          const result = await identity.isAuthorizedTo(announcerOnlyAddress, tc.p, tc.b);
           expect(result).to.equal(tc.x);
         });
       });
@@ -145,34 +154,34 @@ describe("Identity", () => {
   describe("delegate", () => {
     it("success with DELEGATE_ADD", async () => {
       await expect(
-        identity.connect(signer).delegate(notAuthorized.address, DelegationRole.ANNOUNCER)
+        identity.connect(signer).delegate(notAuthorizedAddress, DelegationRole.ANNOUNCER)
       ).to.not.be.reverted;
       expect(
-        await identity.isAuthorizedTo(notAuthorized.address, DelegationPermission.ANNOUNCE, 0x0)
+        await identity.isAuthorizedTo(notAuthorizedAddress, DelegationPermission.ANNOUNCE, 0x0)
       ).to.be.true;
     });
 
     it("emits DSNPAddDelegate on success", async () => {
       await expect(
-        identity.connect(signer).delegate(notAuthorized.address, DelegationRole.ANNOUNCER)
+        identity.connect(signer).delegate(notAuthorizedAddress, DelegationRole.ANNOUNCER)
       )
         .to.emit(identity, "DSNPAddDelegate")
-        .withArgs(notAuthorized.address, DelegationRole.ANNOUNCER);
+        .withArgs(notAuthorizedAddress, DelegationRole.ANNOUNCER);
     });
 
     it("rejects without DELEGATE_ADD", () => {
       expect(
-        identity.connect(announcerOnly).delegate(notAuthorized.address, DelegationRole.ANNOUNCER)
+        identity.connect(announcerOnly).delegate(notAuthorizedAddress, DelegationRole.ANNOUNCER)
       ).to.be.reverted;
     });
 
     it("set different role", async () => {
       await expect(
-        identity.connect(authOwner).delegate(announcerOnly.address, DelegationRole.OWNER)
+        identity.connect(authOwner).delegate(announcerOnlyAddress, DelegationRole.OWNER)
       ).to.not.be.reverted;
       expect(
         await identity.isAuthorizedTo(
-          announcerOnly.address,
+          announcerOnlyAddress,
           DelegationPermission.OWNERSHIP_TRANSFER,
           0x0
         )
@@ -181,18 +190,18 @@ describe("Identity", () => {
 
     it("rejects for the NONE role", async () => {
       await expect(
-        identity.connect(authOwner).delegate(notAuthorized.address, DelegationRole.NONE)
+        identity.connect(authOwner).delegate(notAuthorizedAddress, DelegationRole.NONE)
       ).to.be.revertedWith("Role.NONE not allowed. Use delegateRemove.");
     });
 
     it("rejects setting to a non-existing role", async () => {
-      await expect(identity.connect(authOwner).delegate(notAuthorized.address, 0x3)).to.be.reverted;
+      await expect(identity.connect(authOwner).delegate(notAuthorizedAddress, 0x3)).to.be.reverted;
     });
   });
 
   describe("delegateRemove", () => {
     it("allows an address to remove themselves without DELEGATE_REMOVE", async () => {
-      const addr = announcerOnly.address;
+      const addr = announcerOnlyAddress;
       // Has permission now
       expect(await identity.isAuthorizedTo(addr, DelegationPermission.ANNOUNCE, 0x0)).to.be.true;
 
@@ -214,48 +223,48 @@ describe("Identity", () => {
     });
 
     it("emits DSNPRemoveDelegate on success", async () => {
-      await expect(identity.connect(announcerOnly).delegateRemove(announcerOnly.address))
+      await expect(identity.connect(announcerOnly).delegateRemove(announcerOnlyAddress))
         .to.emit(identity, "DSNPRemoveDelegate")
-        .withArgs(announcerOnly.address);
+        .withArgs(announcerOnlyAddress);
     });
 
     it("success with DELEGATE_REMOVE", async () => {
-      await expect(identity.connect(authOwner).delegateRemove(announcerOnly.address))
+      await expect(identity.connect(authOwner).delegateRemove(announcerOnlyAddress))
         .to.emit(identity, "DSNPRemoveDelegate")
-        .withArgs(announcerOnly.address).and.to.not.be.reverted;
+        .withArgs(announcerOnlyAddress).and.to.not.be.reverted;
 
       expect(
-        await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)
+        await identity.isAuthorizedTo(announcerOnlyAddress, DelegationPermission.ANNOUNCE, 0x0)
       ).to.be.false;
     });
 
     it("rejects without DELEGATE_REMOVE", async () => {
-      await expect(identity.connect(announcerOnly).delegateRemove(authOwner.address)).to.be
+      await expect(identity.connect(announcerOnly).delegateRemove(authOwnerAddress)).to.be
         .reverted;
     });
 
     it("rejects removing a non-authorized address when approved", async () => {
       await expect(
-        identity.connect(authOwner).delegateRemove(neverAuthorized.address)
+        identity.connect(authOwner).delegateRemove(neverAuthorizedAddress)
       ).to.be.revertedWith("Never authorized");
     });
 
     it("rejects removing a non-authorized address", async () => {
       await expect(
-        identity.connect(authOwner).delegateRemove(neverAuthorized.address)
+        identity.connect(authOwner).delegateRemove(neverAuthorizedAddress)
       ).to.be.revertedWith("Never authorized");
     });
 
     it("rejects self-removing a non-authorized address", async () => {
       await expect(
-        identity.connect(neverAuthorized).delegateRemove(neverAuthorized.address)
+        identity.connect(neverAuthorized).delegateRemove(neverAuthorizedAddress)
       ).to.be.revertedWith("Never authorized");
     });
   });
 
   describe("initialization", () => {
     it("cannot initialize when constructed", async () => {
-      await expect(identity.initialize(notAuthorized.address)).to.be.revertedWith(
+      await expect(identity.initialize(notAuthorizedAddress)).to.be.revertedWith(
         "Already initialized"
       );
     });
@@ -263,35 +272,35 @@ describe("Identity", () => {
     it("can initialize when accessed as logic via a proxy", async () => {
       const MockCloneFactory = await ethers.getContractFactory("MockCloneFactory");
       const factory = await MockCloneFactory.deploy();
-      await factory.deployed();
+      const factoryAddress = await factory.getAddress();
 
       // Deploy new proxy
-      const receipt = await (await factory.createCloneProxy(identity.address)).wait();
-      const createEvent = factory.interface.parseLog(
-        receipt.logs.filter(({ address }) => address === factory.address)[0]
+      const receipt = await (await factory.createCloneProxy(identityAddress)).wait();
+      const createEvent  = factory.interface.parseLog(
+        receipt.logs.filter(({ address }) => address === factoryAddress)[0]
       );
       // Use proxy as an identity
-      const proxyAsIdentity = Identity.attach(createEvent.args.addr);
+      const proxyAsIdentity = identity.connect(createEvent.args.addr);
 
-      await expect(proxyAsIdentity.initialize(notAuthorized.address)).to.not.be.reverted;
+      await expect(proxyAsIdentity.initialize(notAuthorizedAddress)).to.not.be.reverted;
     });
 
     it("cannot be initialized more than once", async () => {
       const MockCloneFactory = await ethers.getContractFactory("MockCloneFactory");
       const factory = await MockCloneFactory.deploy();
-      await factory.deployed();
+      const factoryAddress = await factory.getAddress();
 
       // Deploy new proxy
-      const receipt = await (await factory.createCloneProxy(identity.address)).wait();
+      const receipt = await (await factory.createCloneProxy(identityAddress)).wait();
       const createEvent = factory.interface.parseLog(
-        receipt.logs.filter(({ address }) => address === factory.address)[0]
+        receipt.logs.filter(({ address }) => address === factoryAddress)[0]
       );
       // Use proxy as an identity
-      const proxyAsIdentity = Identity.attach(createEvent.args.addr);
+      const proxyAsIdentity = identity.connect(createEvent.args.addr);
 
-      await proxyAsIdentity.initialize(notAuthorized.address);
+      await proxyAsIdentity.initialize(notAuthorizedAddress);
 
-      await expect(identity.initialize(notAuthorized.address)).to.be.revertedWith(
+      await expect(identity.initialize(notAuthorizedAddress)).to.be.revertedWith(
         "Already initialized"
       );
     });
@@ -309,7 +318,7 @@ describe("Identity", () => {
     it("success with DELEGATE_ADD ", async () => {
       const message = {
         nonce: 0,
-        delegateAddr: notAuthorized.address,
+        delegateAddr: notAuthorizedAddress,
         role: DelegationRole.ANNOUNCER,
       };
       const { v, r, s } = await signEIP712(
@@ -323,14 +332,14 @@ describe("Identity", () => {
         .be.reverted;
 
       expect(
-        await identity.isAuthorizedTo(notAuthorized.address, DelegationPermission.ANNOUNCE, 0x0)
+        await identity.isAuthorizedTo(notAuthorizedAddress, DelegationPermission.ANNOUNCE, 0x0)
       ).to.be.true;
     });
 
     it("emits a DSNPAddDelegate event", async () => {
       const message = {
         nonce: 0,
-        delegateAddr: notAuthorized.address,
+        delegateAddr: notAuthorizedAddress,
         role: DelegationRole.ANNOUNCER,
       };
       const { v, r, s } = await signEIP712(
@@ -342,13 +351,13 @@ describe("Identity", () => {
 
       await expect(identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message))
         .to.emit(identity, "DSNPAddDelegate")
-        .withArgs(notAuthorized.address, DelegationRole.ANNOUNCER);
+        .withArgs(notAuthorizedAddress, DelegationRole.ANNOUNCER);
     });
 
     it("updates nonce", async () => {
       const message = {
         nonce: 0,
-        delegateAddr: notAuthorized.address,
+        delegateAddr: notAuthorizedAddress,
         role: DelegationRole.ANNOUNCER,
       };
       const { v, r, s } = await signEIP712(
@@ -360,13 +369,13 @@ describe("Identity", () => {
 
       await identity.connect(neverAuthorized).delegateByEIP712Sig(v, r, s, message);
 
-      expect(await identity.getNonceForDelegate(notAuthorized.address)).to.equal(1);
+      expect(await identity.getNonceForDelegate(notAuthorizedAddress)).to.equal(1);
     });
 
     it("rejects when nonce is too high", async () => {
       const message = {
         nonce: 1,
-        delegateAddr: notAuthorized.address,
+        delegateAddr: notAuthorizedAddress,
         role: DelegationRole.ANNOUNCER,
       };
       const { v, r, s } = await signEIP712(
@@ -385,7 +394,7 @@ describe("Identity", () => {
       // First change to update nonce to 1
       const message = {
         nonce: 0,
-        delegateAddr: notAuthorized.address,
+        delegateAddr: notAuthorizedAddress,
         role: DelegationRole.ANNOUNCER,
       };
       const { v, r, s } = await signEIP712(
@@ -405,7 +414,7 @@ describe("Identity", () => {
     });
 
     it("reverts when sender is not authorized", async () => {
-      const message = { nonce: 0, delegateAddr: announcerOnly.address, role: DelegationRole.OWNER };
+      const message = { nonce: 0, delegateAddr: announcerOnlyAddress, role: DelegationRole.OWNER };
 
       const { v, r, s } = await signEIP712(
         notAuthorized,
@@ -420,7 +429,7 @@ describe("Identity", () => {
     });
 
     it("rejects for the NONE role", async () => {
-      const message = { nonce: 0, delegateAddr: announcerOnly.address, role: DelegationRole.NONE };
+      const message = { nonce: 0, delegateAddr: announcerOnlyAddress, role: DelegationRole.NONE };
       const { v, r, s } = await signEIP712(
         authOwner,
         identityDomain,
@@ -434,7 +443,7 @@ describe("Identity", () => {
     });
 
     it("rejects setting to a non-existing role", async () => {
-      const message = { nonce: 0, delegateAddr: announcerOnly.address, role: 0x10 };
+      const message = { nonce: 0, delegateAddr: announcerOnlyAddress, role: 0x10 };
       const { v, r, s } = await signEIP712(
         authOwner,
         identityDomain,
@@ -458,7 +467,7 @@ describe("Identity", () => {
     it("success with DELEGATE_REMOVE ", async () => {
       const message = {
         nonce: 1,
-        delegateAddr: announcerOnly.address,
+        delegateAddr: announcerOnlyAddress,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -471,14 +480,14 @@ describe("Identity", () => {
         .not.be.reverted;
 
       expect(
-        await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)
+        await identity.isAuthorizedTo(announcerOnlyAddress, DelegationPermission.ANNOUNCE, 0x0)
       ).to.be.false;
     });
 
     it("emits a DSNPRemoveDelegate event", async () => {
       const message = {
         nonce: 1,
-        delegateAddr: announcerOnly.address,
+        delegateAddr: announcerOnlyAddress,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -489,13 +498,13 @@ describe("Identity", () => {
 
       await expect(identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message))
         .to.emit(identity, "DSNPRemoveDelegate")
-        .withArgs(announcerOnly.address);
+        .withArgs(announcerOnlyAddress);
     });
 
     it("success for self removal ", async () => {
       const message = {
         nonce: 1,
-        delegateAddr: announcerOnly.address,
+        delegateAddr: announcerOnlyAddress,
       };
       const { v, r, s } = await signEIP712(
         announcerOnly,
@@ -508,14 +517,14 @@ describe("Identity", () => {
         .not.be.reverted;
 
       expect(
-        await identity.isAuthorizedTo(announcerOnly.address, DelegationPermission.ANNOUNCE, 0x0)
+        await identity.isAuthorizedTo(announcerOnlyAddress, DelegationPermission.ANNOUNCE, 0x0)
       ).to.be.false;
     });
 
     it("reverts replay", async () => {
       const message = {
         nonce: 1,
-        delegateAddr: announcerOnly.address,
+        delegateAddr: announcerOnlyAddress,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -526,7 +535,7 @@ describe("Identity", () => {
 
       await identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message);
 
-      expect(await identity.getNonceForDelegate(announcerOnly.address)).to.equal(2);
+      expect(await identity.getNonceForDelegate(announcerOnlyAddress)).to.equal(2);
 
       await expect(
         identity.connect(neverAuthorized).delegateRemoveByEIP712Sig(v, r, s, message)
@@ -536,7 +545,7 @@ describe("Identity", () => {
     it("rejects when nonce is too high", async () => {
       const message = {
         nonce: 2,
-        delegateAddr: announcerOnly.address,
+        delegateAddr: announcerOnlyAddress,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -553,7 +562,7 @@ describe("Identity", () => {
     it("rejects when nonce is too low", async () => {
       const message = {
         nonce: 0,
-        delegateAddr: announcerOnly.address,
+        delegateAddr: announcerOnlyAddress,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -570,7 +579,7 @@ describe("Identity", () => {
     it("reverts when sender is not authorized", async () => {
       const message = {
         nonce: 1,
-        delegateAddr: announcerOnly.address,
+        delegateAddr: announcerOnlyAddress,
       };
       const { v, r, s } = await signEIP712(
         notAuthorized,
@@ -587,7 +596,7 @@ describe("Identity", () => {
     it("rejects removing a non-authorized address when authorized", async () => {
       const message = {
         nonce: 0,
-        delegateAddr: notAuthorized.address,
+        delegateAddr: notAuthorizedAddress,
       };
       const { v, r, s } = await signEIP712(
         authOwner,
@@ -602,7 +611,7 @@ describe("Identity", () => {
     });
 
     it("rejects when signed by a non-authorized address", async () => {
-      const message = { nonce: 1, delegateAddr: announcerOnly.address };
+      const message = { nonce: 1, delegateAddr: announcerOnlyAddress };
       const { v, r, s } = await signEIP712(
         notAuthorized,
         identityDomain,
@@ -616,7 +625,7 @@ describe("Identity", () => {
     });
 
     it("rejects self-removing a non-authorized address", async () => {
-      const message = { nonce: 0, delegateAddr: notAuthorized.address };
+      const message = { nonce: 0, delegateAddr: notAuthorizedAddress };
       const { v, r, s } = await signEIP712(
         notAuthorized,
         identityDomain,

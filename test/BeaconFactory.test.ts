@@ -1,9 +1,11 @@
-import { ethers, waffle } from "hardhat";
-import { ContractTransaction } from "ethers";
+import hre from "hardhat";
+import { ContractTransaction, Signer } from "ethers";
 import chai from "chai";
-import { describe } from "mocha";
 import { DelegationPermission, DelegationRole } from "./helpers/DSNPEnums";
 const { expect } = chai;
+const ethers = hre.ethers;
+
+const getContractFactory = hre.ethers.getContractFactory;
 
 const getProxyAddressFromResponse = async (response: ContractTransaction) => {
   const receipt = await response.wait();
@@ -22,7 +24,7 @@ const getDSNPRegistryUpdateFromResponse = async (
   response: ContractTransaction
 ): Promise<DSNPRegistryUpdate> => {
   const receipt = await response.wait();
-  const Registry = await ethers.getContractFactory("Registry");
+  const Registry = await getContractFactory("Registry");
   const regEvents = (l) => {
     try {
       return Registry.interface.parseLog(l);
@@ -43,34 +45,35 @@ const getDSNPRegistryUpdateFromResponse = async (
 
 describe("BeaconFactory", () => {
   let factoryInstance, beaconInstance, identityInstance;
-  let deployer, signer;
+  let beaconAddress = '';
+  let deployer: Signer, signer: Signer;
   const noMoneyAddress = "0x0A7D8ED2973c7495E043d5a7fe37684e51Dc707D";
   const handle = "flarp";
 
   beforeEach(async () => {
-    [deployer, signer] = await ethers.getSigners();
+    [deployer, signer] = await hre.ethers.getSigners();
+    const deployerAddress = await deployer.getAddress();
 
-    const Registry = await ethers.getContractFactory("Registry");
+    const Registry = await getContractFactory("Registry");
     const registry = await Registry.deploy();
-    await registry.deployed();
+    const registryAddress = await registry.getAddress();
 
-    const Identity = await ethers.getContractFactory("Identity");
+    const Identity = await getContractFactory("Identity");
     identityInstance = await Identity.deploy("0x0000000000000000000000000000000000000000");
-    await identityInstance.deployed();
+    const identityAddress = await identityInstance.getAddress();
 
-    const Beacon = await ethers.getContractFactory("Beacon");
-    beaconInstance = await Beacon.deploy(identityInstance.address);
-    await beaconInstance.deployed();
+    const Beacon = await getContractFactory("Beacon");
+    beaconInstance = await Beacon.deploy(identityAddress, deployerAddress);
+    beaconAddress = await beaconInstance.getAddress();
 
-    const BeaconFactory = await ethers.getContractFactory("BeaconFactory");
-    factoryInstance = await BeaconFactory.deploy(beaconInstance.address, registry.address);
-    await factoryInstance.deployed();
+    const BeaconFactory = await getContractFactory("BeaconFactory");
+    factoryInstance = await BeaconFactory.deploy(beaconAddress, registryAddress);
   });
 
   describe("getBeacon", () => {
     it("has the default beacon set", async () => {
       const currentBeacon = await factoryInstance.getBeacon();
-      expect(currentBeacon).to.equal(beaconInstance.address);
+      expect(currentBeacon).to.equal(beaconAddress);
     });
   });
 
@@ -106,28 +109,31 @@ describe("BeaconFactory", () => {
 
   describe("createBeaconProxy(address)", () => {
     let otherBeacon, testDelegate;
+    let otherBeaconAddress: string = '';
+    let testDelegateAddress: string = ''
 
     beforeEach(async () => {
+      [deployer, signer] = await hre.ethers.getSigners();
       // Create a TestDelegate
-      const TestDelegate = await ethers.getContractFactory("TestDelegate");
+      const TestDelegate = await getContractFactory("TestDelegate");
       testDelegate = await TestDelegate.deploy("0x0000000000000000000000000000000000000000");
-      await testDelegate.deployed();
+      testDelegateAddress = await testDelegate.getAddress();
 
-      const Beacon = await ethers.getContractFactory("Beacon");
-      otherBeacon = await Beacon.deploy(testDelegate.address);
-      await otherBeacon.deployed();
+      const Beacon = await getContractFactory("Beacon");
+      otherBeacon = await Beacon.deploy(testDelegateAddress, deployer.address);
+      otherBeaconAddress = await otherBeacon.getAddress();
     });
 
     it("can deploy a contract with the beacon", async () => {
       await expect(
-        factoryInstance.connect(signer)["createBeaconProxy(address)"](otherBeacon.address)
+        factoryInstance.connect(signer)["createBeaconProxy(address)"](otherBeaconAddress)
       ).to.emit(factoryInstance, "ProxyCreated");
     });
 
     it("Event has a proper address", async () => {
       const response = await factoryInstance
         .connect(signer)
-        ["createBeaconProxy(address)"](otherBeacon.address);
+        ["createBeaconProxy(address)"](otherBeaconAddress);
       const newProxyAddress = await getProxyAddressFromResponse(response);
       expect(newProxyAddress).to.be.properAddress;
     });
@@ -135,7 +141,7 @@ describe("BeaconFactory", () => {
     it("really is using the TestDelegate Logic", async () => {
       const response = await factoryInstance
         .connect(signer)
-        ["createBeaconProxy(address)"](otherBeacon.address);
+        ["createBeaconProxy(address)"](otherBeaconAddress);
       const newProxyAddress = await getProxyAddressFromResponse(response);
       const proxyAsDelegate = await ethers.getContractAt("IDelegation", newProxyAddress);
 
@@ -147,7 +153,7 @@ describe("BeaconFactory", () => {
     it("initializes the proxy", async () => {
       const response = await factoryInstance
         .connect(signer)
-        ["createBeaconProxy(address)"](otherBeacon.address);
+        ["createBeaconProxy(address)"](otherBeaconAddress);
       const newProxyAddress = await getProxyAddressFromResponse(response);
 
       const proxyAsDelegate = await ethers.getContractAt("IDelegation", newProxyAddress);
@@ -167,31 +173,31 @@ describe("BeaconFactory", () => {
       await expect(
         factoryInstance
           .connect(signer)
-          .createBeaconProxyWithOwner(beaconInstance.address, noMoneyAddress)
+          .createBeaconProxyWithOwner(beaconAddress, noMoneyAddress)
       ).to.emit(factoryInstance, "ProxyCreated");
     });
 
     it("Event has a proper address", async () => {
       const response = await factoryInstance
         .connect(signer)
-        .createBeaconProxyWithOwner(beaconInstance.address, noMoneyAddress);
+        .createBeaconProxyWithOwner(beaconAddress, noMoneyAddress);
       const newProxyAddress = await getProxyAddressFromResponse(response);
       expect(newProxyAddress).to.be.properAddress;
     });
 
     it("can really use the TestDelegate Logic", async () => {
       // Create a TestDelegate
-      const TestDelegate = await ethers.getContractFactory("TestDelegate");
+      const TestDelegate = await getContractFactory("TestDelegate");
       const testDelegate = await TestDelegate.deploy("0x0000000000000000000000000000000000000000");
-      await testDelegate.deployed();
 
-      const Beacon = await ethers.getContractFactory("Beacon");
-      const otherBeacon = await Beacon.deploy(testDelegate.address);
-      await otherBeacon.deployed();
+      const Beacon = await getContractFactory("Beacon");
+      const deployerAddress = await deployer.getAddress()
+      const otherBeacon = await Beacon.deploy(await testDelegate.getAddress(), deployerAddress);
+      const otherBeaconAddress = await otherBeacon.getAddress();
 
       const response = await factoryInstance
         .connect(signer)
-        .createBeaconProxyWithOwner(otherBeacon.address, noMoneyAddress);
+        .createBeaconProxyWithOwner(otherBeaconAddress, noMoneyAddress);
       const newProxyAddress = await getProxyAddressFromResponse(response);
       const proxyAsDelegate = await ethers.getContractAt("IDelegation", newProxyAddress);
 
@@ -203,7 +209,7 @@ describe("BeaconFactory", () => {
     it("initializes the proxy with noMoneyAddress", async () => {
       const response = await factoryInstance
         .connect(signer)
-        .createBeaconProxyWithOwner(beaconInstance.address, noMoneyAddress);
+        .createBeaconProxyWithOwner(beaconAddress, noMoneyAddress);
       const newProxyAddress = await getProxyAddressFromResponse(response);
 
       const proxyAsDelegate = await ethers.getContractAt("IDelegation", newProxyAddress);
@@ -222,7 +228,7 @@ describe("BeaconFactory", () => {
     it("emits both a ProxyCreated and DSNPRegistryUpdateFromResponse event", async () => {
       const response = await factoryInstance
         .connect(signer)
-        .createAndRegisterBeaconProxy(beaconInstance.address, noMoneyAddress, handle);
+        .createAndRegisterBeaconProxy(beaconAddress, noMoneyAddress, handle);
       const newProxyAddress = await getProxyAddressFromResponse(response);
       expect(newProxyAddress).to.be.properAddress;
 
@@ -235,13 +241,13 @@ describe("BeaconFactory", () => {
       // make one call that registers handle
       await factoryInstance
         .connect(signer)
-        .createAndRegisterBeaconProxy(beaconInstance.address, noMoneyAddress, handle);
+        .createAndRegisterBeaconProxy(beaconAddress, noMoneyAddress, handle);
 
       // make another call for different address that attempts to register same handle
       await expect(
         factoryInstance
           .connect(signer)
-          .createAndRegisterBeaconProxy(beaconInstance.address, signer.address, handle)
+          .createAndRegisterBeaconProxy(beaconAddress, signer.address, handle)
       ).to.be.revertedWith("Handle already exists");
     });
   });

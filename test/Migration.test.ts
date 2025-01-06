@@ -2,7 +2,7 @@ import { ethers, waffle } from "hardhat";
 import chai from "chai";
 import { Contract, Event, EventFilter } from "ethers";
 const { expect } = chai;
-import { keccak256 as keccak256Sha3 } from "js-sha3";
+import { keccak256 as keccak256Sha3 } from 'js-sha3';
 import { parseABI } from "./helpers/abi";
 
 const keccak256 = (data) => "0x" + keccak256Sha3(data);
@@ -10,9 +10,7 @@ const topic = keccak256("DSNPMigration(bytes32,string)");
 
 async function setup() {
   const Contract = await ethers.getContractFactory("Migrations", {});
-  const contract = await Contract.deploy();
-  await contract.deployed();
-  return contract;
+  return Contract.deploy();
 }
 
 describe("Migrate", function () {

@@ -32,7 +32,6 @@
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "@typechain/hardhat": "^9.1.0",
     "chai": "4.5.0",
     "hardhat": "^2.22.17",
     "mocha": "^11.0.1"
@@ -40,6 +39,6 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.1.0",
     "ethers": "^6.13.4",
-    "hardhat-gas-reporter": "^2.2.2"
+    "js-sha3": "^0.9.3"
   }
 }

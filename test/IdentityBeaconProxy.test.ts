@@ -1,8 +1,7 @@
 import { ethers } from "hardhat";
 import chai from "chai";
-const { expect } = chai;
-import { describe } from "mocha";
 import { DelegationPermission, DelegationRole } from "./helpers/DSNPEnums";
+const { expect } = chai;
 
 describe("IdentityBeaconProxy", () => {
   let beaconInstance, testDelegate, identityInstance, beaconFactoryInstance;
@@ -24,23 +23,18 @@ describe("IdentityBeaconProxy", () => {
 
     const Registry = await ethers.getContractFactory("Registry");
     const registry = await Registry.deploy();
-    await registry.deployed();
 
     const Identity = await ethers.getContractFactory("Identity");
     identityInstance = await Identity.deploy("0x0000000000000000000000000000000000000000");
-    await identityInstance.deployed();
 
     const TestDelegate = await ethers.getContractFactory("TestDelegate");
     testDelegate = await TestDelegate.deploy(signer.address);
-    await testDelegate.deployed();
 
     const Beacon = await ethers.getContractFactory("Beacon");
     beaconInstance = await Beacon.deploy(testDelegate.address);
-    await beaconInstance.deployed();
 
     const BeaconFactory = await ethers.getContractFactory("BeaconFactory");
     beaconFactoryInstance = await BeaconFactory.deploy(beaconInstance.address, registry.address);
-    await beaconFactoryInstance.deployed();
   });
 
   describe("Calls logic code", () => {
